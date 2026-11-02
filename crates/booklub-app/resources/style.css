@@ -1,0 +1,337 @@
+/* The Paper & Ink colour tokens. This file is the only place a colour value
+   may appear (QA-17). Light tokens come first; the dark block overrides them. */
+:root {
+  --color-page: #f7f3ec;
+  --color-card: #fffdf8;
+  --color-raised: #efe9de;
+  --color-track: #e0d8ca;
+  --color-line-subtle: #e9e2d6;
+  --color-line: #d3c9b8;
+  --color-line-strong: #8a7f6e;
+  --color-ink: #211b15;
+  --color-ink-2: #4a4036;
+  --color-ink-3: #62584b;
+  --color-ink-4: #9a8f7e;
+  --color-accent: #2e4a8c;
+  --color-accent-hover: #243c74;
+  --color-accent-ink: #2a4585;
+  --color-on-accent: #ffffff;
+  --color-commit: #2a241f;
+  --color-commit-hover: #463d35;
+  --color-on-commit: #fffdf8;
+  --color-danger: #a3261e;
+  --color-on-danger: #ffffff;
+  --color-danger-ink: #9c241c;
+  --color-success: #2f7a4e;
+  --color-success-ink: #276842;
+  --color-warning: #a9640a;
+  --color-warning-ink: #8a5208;
+  --color-chart-1: #2e4a8c;
+  --color-chart-2: #6f86be;
+  --color-chart-3: #a9640a;
+  --color-chart-4: #d0a564;
+  --color-chart-5: #9a8f7e;
+  /* Over the Reader's images, so these two never change with the mode (REQ-35d, REQ-35j). */
+  --tile-scrim: rgba(18, 14, 10, 0.7);
+  --tile-scrim-solid: #120e0a;
+  --tile-scrim-clear: rgba(18, 14, 10, 0);
+  --tile-scrim-deep: rgba(18, 14, 10, 0.82);
+  --tile-ink: #f4eee4;
+  --shadow-tile: 0 1px 2px rgba(20, 26, 41, 0.06), 0 2px 8px rgba(20, 26, 41, 0.1);
+  --shadow-hover: 0 4px 12px rgba(20, 26, 41, 0.12);
+  --shadow-drag: 0 10px 20px rgba(0, 0, 0, 0.24);
+  --shadow-popover: 0 6px 24px rgba(20, 26, 41, 0.18);
+
+  /* The application accent stays ink blue whatever the system accent is. */
+  --accent-bg-color: var(--color-accent);
+  --accent-fg-color: var(--color-on-accent);
+  --accent-color: var(--color-accent-ink);
+  --window-bg-color: var(--color-page);
+  --window-fg-color: var(--color-ink);
+  --view-bg-color: var(--color-card);
+  --view-fg-color: var(--color-ink);
+  --headerbar-bg-color: var(--color-page);
+  --headerbar-fg-color: var(--color-ink);
+  --headerbar-border-color: var(--color-line);
+  --sidebar-bg-color: var(--color-card);
+  --sidebar-fg-color: var(--color-ink);
+  --popover-bg-color: var(--color-card);
+  --popover-fg-color: var(--color-ink);
+  --dialog-bg-color: var(--color-card);
+  --dialog-fg-color: var(--color-ink);
+  --card-bg-color: var(--color-card);
+  --card-fg-color: var(--color-ink);
+}
+
+/* Paper & Ink, dark. libadwaita 1.9 replaces style-dark.css with this media query (REQ-42). */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-page: #14110e;
+    --color-card: #1b1814;
+    --color-raised: #24201b;
+    --color-track: #332d26;
+    --color-line-subtle: #26211c;
+    --color-line: #3a332b;
+    --color-line-strong: #7d7262;
+    --color-ink: #efe8dc;
+    --color-ink-2: #c2b8a8;
+    --color-ink-3: #a0968a;
+    --color-ink-4: #6b6153;
+    --color-accent: #7f9ce0;
+    --color-accent-hover: #a3b9ec;
+    --color-accent-ink: #9bb2ea;
+    --color-on-accent: #14110e;
+    --color-commit: #efe8dc;
+    --color-commit-hover: #ffffff;
+    --color-on-commit: #14110e;
+    --color-danger: #8e2a22;
+    --color-on-danger: #f7f3ec;
+    --color-danger-ink: #f08a7e;
+    --color-success: #3e9a66;
+    --color-success-ink: #7fd3a2;
+    --color-warning: #c98a2b;
+    --color-warning-ink: #f0c070;
+    --color-chart-1: #7f9ce0;
+    --color-chart-2: #4a64a3;
+    --color-chart-3: #c98a2b;
+    --color-chart-4: #8a6a3a;
+    --color-chart-5: #6b6153;
+    --shadow-tile: 0 1px 2px rgba(0, 0, 0, 0.25), 0 2px 8px rgba(0, 0, 0, 0.3);
+    --shadow-hover: 0 4px 12px rgba(0, 0, 0, 0.45);
+    --shadow-drag: 0 10px 20px rgba(0, 0, 0, 0.5);
+    --shadow-popover: 0 6px 24px rgba(0, 0, 0, 0.55);
+  }
+}
+
+/* ---------- Type ramp (Manrope, QA-34) ---------- */
+window, dialog, popover, tooltip { font-family: "Manrope"; font-size: 14px; }
+.title-1 { font-size: 26px; font-weight: 700; letter-spacing: -0.3px; }
+.title-2 { font-size: 20px; font-weight: 700; letter-spacing: -0.2px; }
+.heading { font-size: 15px; font-weight: 600; color: var(--color-ink); }
+.body-strong { font-size: 14px; font-weight: 600; color: var(--color-ink); }
+.body { font-size: 14px; font-weight: 400; color: var(--color-ink); }
+.caption { font-size: 12px; font-weight: 500; color: var(--color-ink-3); }
+.caption-2 { font-size: 12px; font-weight: 500; color: var(--color-ink-2); }
+.eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.4px; color: var(--color-ink-3); }
+.chip-text { font-size: 11px; font-weight: 700; letter-spacing: 0.2px; }
+.stat { font-size: 30px; font-weight: 700; letter-spacing: -0.4px; color: var(--color-ink); }
+.stat-small { font-size: 18px; font-weight: 700; color: var(--color-ink); }
+.ink-2 { color: var(--color-ink-2); }
+.accent-ink { color: var(--color-accent-ink); }
+.success-ink { color: var(--color-success-ink); }
+.warning-ink { color: var(--color-warning-ink); }
+.danger-ink { color: var(--color-danger-ink); }
+
+/* ---------- Shell ---------- */
+.pane-sidebar { background: var(--color-card); border-right: 1px solid var(--color-line); }
+.pane-sidebar headerbar { background: var(--color-card); box-shadow: none; min-height: 46px; }
+.pane-content headerbar { background: var(--color-page); box-shadow: 0 1px var(--color-line); min-height: 46px; }
+.pane-inspector { background: var(--color-card); border-left: 1px solid var(--color-line); }
+.pane-inspector.overlaid { box-shadow: var(--shadow-popover); }
+.pane-inspector headerbar { background: var(--color-card); box-shadow: 0 1px var(--color-line); min-height: 46px; }
+.page { background: var(--color-page); }
+
+.nav-list { background: none; padding: 4px 8px; }
+.nav-list row { min-height: 38px; padding: 0 10px; margin-bottom: 0; border-radius: 8px; color: var(--color-ink-2); }
+.nav-list row image { color: var(--color-ink-2); }
+.nav-list row:hover { background: var(--color-raised); }
+.nav-list row:selected { background: var(--color-raised); color: var(--color-ink); font-weight: 600; }
+.nav-list row:selected image { color: var(--color-accent); }
+.nav-list row:focus-visible { outline: 2px solid var(--color-accent); outline-offset: -2px; }
+.nav-settings { min-height: 38px; margin: 4px 8px 8px 8px; padding: 0 10px; border-radius: 8px; background: none; box-shadow: none; color: var(--color-ink-2); font-weight: 400; }
+.nav-settings:hover { background: var(--color-raised); }
+.nav-settings image { color: var(--color-ink-2); }
+.nav-count { font-size: 12px; font-weight: 500; color: var(--color-ink-3); }
+
+.crumb { color: var(--color-ink-2); font-weight: 500; }
+.crumb-link { padding: 2px 4px; min-height: 0; min-width: 0; font-weight: 500; color: var(--color-ink-2); background: none; }
+.crumb-link:hover { color: var(--color-ink); }
+
+entry.search, .search-entry { min-height: 32px; border-radius: 6px; background: var(--color-card); border: 1px solid var(--color-line); color: var(--color-ink); }
+.search-entry { min-width: 220px; }
+.search-entry:focus-within, entry:focus-within { outline: 2px solid var(--color-accent); outline-offset: -1px; }
+
+button.tool { min-width: 20px; min-height: 32px; padding: 0 6px; border-radius: 6px; background: none; color: var(--color-ink); box-shadow: none; }
+button.tool:hover, menubutton.tool > button:hover { background: var(--color-raised); }
+menubutton.tool > button { min-width: 20px; min-height: 32px; padding: 0 6px; border-radius: 6px; background: none; color: var(--color-ink); box-shadow: none; }
+menubutton.tool > button:checked { background: var(--color-raised); }
+.filter-badge { min-width: 10px; min-height: 16px; border-radius: 8px; background: var(--color-accent); color: var(--color-on-accent); font-size: 11px; font-weight: 700; padding: 0 3px; }
+
+/* ---------- Buttons (32 px, QA-10) ---------- */
+button.secondary { min-height: 32px; padding: 0 14px; border-radius: 6px; background: var(--color-raised); border: 1px solid var(--color-line); color: var(--color-ink); font-weight: 600; box-shadow: none; }
+button.secondary:hover { border-color: var(--color-line-strong); }
+button.commit { min-height: 32px; padding: 0 14px; border-radius: 6px; background: var(--color-commit); color: var(--color-on-commit); font-weight: 600; box-shadow: none; }
+button.commit:hover { background: var(--color-commit-hover); }
+button.commit:disabled { opacity: 0.5; }
+button.destructive { min-height: 32px; padding: 0 14px; border-radius: 6px; background: var(--color-danger); color: var(--color-on-danger); font-weight: 600; box-shadow: none; }
+button.flat-text { min-height: 32px; padding: 0 14px; border-radius: 6px; background: none; color: var(--color-ink); font-weight: 600; box-shadow: none; }
+button.flat-text:hover { background: var(--color-raised); }
+button:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 1px; }
+
+/* ---------- Book tile, 148 x 222, radius 10 ---------- */
+bookcanvas { background: var(--color-page); }
+
+.book-tile { border-radius: 10px; background: var(--color-raised); box-shadow: var(--shadow-tile); }
+.tile-frame { border-radius: 10px; border: 1px solid var(--color-line); }
+.has-image .tile-frame { border-color: transparent; }
+.book-tile:hover { box-shadow: var(--shadow-hover); }
+.book-tile:hover .tile-frame { border-color: var(--color-line-strong); }
+.book-tile:focus-visible .tile-frame,
+.category-tile:focus-visible .tile-frame { border: 2px solid var(--color-accent); box-shadow: 0 0 0 2px var(--color-page); }
+.book-tile.selected .tile-frame { border: 3px solid var(--color-accent); }
+.dragging { opacity: 0.45; }
+.drop-target .tile-frame { border: 2px dashed var(--color-accent); }
+
+.tile-text { padding: 10px 12px; }
+.has-image .tile-text { background: var(--tile-scrim); }
+.tile-title { font-size: 14px; font-weight: 700; color: var(--color-ink); }
+.tile-author { font-size: 12px; font-weight: 500; color: var(--color-ink-2); }
+.has-image .tile-title, .has-image .tile-author { color: var(--tile-ink); }
+.tile-initials { font-size: 40px; font-weight: 700; letter-spacing: -0.5px; color: var(--color-ink-2); }
+
+.status-chip { padding: 3px 7px; border-radius: 6px; background: var(--color-card); border: 1px solid var(--color-line); color: var(--color-ink-2); }
+.has-image .status-chip { background: var(--tile-scrim-solid); border-color: transparent; color: var(--tile-ink); }
+.priority-mark { min-width: 22px; min-height: 22px; border-radius: 11px; background: var(--color-card); border: 1px solid var(--color-line); color: var(--color-warning-ink); }
+.has-image .priority-mark { background: var(--tile-scrim-solid); border-color: transparent; color: var(--tile-ink); }
+
+progressbar.tile-bar > trough { min-width: 0; min-height: 3px; border: none; border-radius: 0; background: var(--color-track); }
+progressbar.tile-bar > trough > progress { min-height: 3px; border: none; border-radius: 0; background: var(--color-accent); }
+progressbar.tile-bar.finished > trough > progress { background: var(--color-success); }
+.has-image progressbar.tile-bar > trough, .has-art progressbar.tile-bar > trough { background: var(--tile-scrim-solid); }
+
+/* ---------- Category tile, 216 x 122, radius 12 ---------- */
+.category-tile { border-radius: 12px; background: var(--color-raised); box-shadow: var(--shadow-tile); }
+.category-tile.has-art { background: var(--tile-scrim-solid); }
+.category-tile .tile-frame { border-radius: 12px; }
+.category-tile.has-art .tile-frame { border-color: transparent; }
+.category-tile:hover { box-shadow: var(--shadow-hover); }
+.category-tile:hover .tile-frame { border-color: var(--color-line-strong); }
+/* The name starts 54% down the tile. By then the scrim must be fully at its 70% opacity, so that
+   text stays above 4.5:1 even on pure white artwork (QA-11). */
+.category-scrim { background: linear-gradient(to bottom, var(--tile-scrim-clear) 10%, var(--tile-scrim) 50%, var(--tile-scrim-deep) 100%); }
+.category-name { font-size: 16px; font-weight: 700; color: var(--color-ink); }
+.category-count { font-size: 12px; font-weight: 500; color: var(--color-ink-3); }
+.has-art .category-name, .has-art .category-count { color: var(--tile-ink); }
+.category-glyph { color: var(--color-ink-2); }
+.tile-new { border-radius: 12px; border: 1.5px dashed var(--color-line-strong); color: var(--color-accent-ink); font-weight: 600; background: none; box-shadow: none; }
+.tile-new:hover { background: var(--color-raised); }
+
+/* ---------- Section headings, list rows, and the status bar ---------- */
+.section-heading { border-bottom: 1px solid var(--color-line); }
+.section-heading.major .section-title { font-size: 16px; font-weight: 700; color: var(--color-ink); }
+.section-heading.minor { border-bottom-color: var(--color-line-subtle); }
+.section-heading.minor .section-title { font-size: 13px; font-weight: 600; color: var(--color-ink-2); }
+.book-row { padding: 0 10px; border-bottom: 1px solid var(--color-line-subtle); }
+.book-row:hover { background: var(--color-raised); }
+.book-row:focus-visible { outline: 2px solid var(--color-accent); outline-offset: -2px; }
+.book-row.selected { background: var(--color-raised); box-shadow: inset 3px 0 var(--color-accent); }
+.book-row.drop-target { box-shadow: inset 0 2px var(--color-accent); }
+.row-cover { border-radius: 4px; background: var(--color-raised); }
+.row-initials { font-size: 12px; font-weight: 700; color: var(--color-ink-2); }
+.status-bar { min-height: 34px; padding: 0 12px 0 24px; background: var(--color-page); border-top: 1px solid var(--color-line); }
+.status-glyph { color: var(--color-ink-3); }
+.status-bar scale > trough { background: var(--color-track); min-height: 3px; }
+.status-bar scale > trough > highlight { background: var(--color-accent); min-height: 3px; }
+.status-bar scale > trough > slider { background: var(--color-card); border: 1px solid var(--color-line-strong); box-shadow: none; }
+
+/* ---------- Category background picker ---------- */
+.art-button { padding: 0; background: none; box-shadow: none; border-radius: 8px; }
+.art-choice { border-radius: 8px; background: var(--color-raised); }
+.art-choice .tile-frame { border-radius: 8px; }
+.art-button:hover .tile-frame { border-color: var(--color-line-strong); }
+.art-button.selected .tile-frame { border: 3px solid var(--color-accent); }
+.art-check { padding: 2px; border-radius: 6px; background: var(--color-accent); color: var(--color-on-accent); }
+
+/* ---------- Sub-category tile, 180 x 60, radius 10 ---------- */
+.sub-strip { padding: 12px 24px; border-bottom: 1px solid var(--color-line); }
+.sub-tile { padding: 0 16px; border-radius: 10px; background: var(--color-card); border: 1px solid var(--color-line); box-shadow: none; color: var(--color-ink); }
+.sub-tile:hover { border-color: var(--color-line-strong); box-shadow: var(--shadow-hover); background: var(--color-card); }
+.sub-tile:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+.sub-tile.selected { border: 3px solid var(--color-accent); padding: 0 14px; }
+.sub-tile.selected .sub-name, .sub-tile.selected image { color: var(--color-accent-ink); }
+.sub-tile.drop-target { border: 2px dashed var(--color-accent); }
+.sub-name { font-size: 14px; font-weight: 600; color: var(--color-ink); }
+.sub-name.muted { color: var(--color-ink-2); }
+.sub-count { font-size: 12px; font-weight: 500; color: var(--color-ink-3); }
+.sub-tile.tile-new { border-radius: 10px; }
+.tile-new.small { padding: 0 8px; border-radius: 10px; }
+
+.section-pad { padding: 20px 24px 0 24px; }
+.summary { padding: 12px 24px 0 24px; font-size: 12px; font-weight: 500; color: var(--color-ink-3); }
+
+/* ---------- Inspector ---------- */
+.inspector-title { min-height: 44px; padding: 0 6px 0 16px; border-bottom: 1px solid var(--color-line-subtle); }
+.inspector-body { padding: 16px; }
+/* Three labelled buttons have to fit the 320 px panel. */
+.bg-actions button { padding: 0 10px; }
+.bg-preview { border-radius: 10px; background: var(--color-raised); }
+.bg-preview:focus-visible, .bg-preview:focus { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+.bg-empty { border-radius: 10px; border: 1.5px dashed var(--color-line-strong); }
+.field-label { font-size: 12px; font-weight: 500; color: var(--color-ink-2); }
+.field-box, entry.field-box { min-height: 32px; border-radius: 6px; background: var(--color-card); border: 1px solid var(--color-line); color: var(--color-ink); box-shadow: none; }
+entry.invalid, .invalid { border: 2px solid var(--color-danger-ink); }
+.field-error { font-size: 12px; font-weight: 500; color: var(--color-danger-ink); }
+dropdown > button { min-height: 32px; border-radius: 6px; background: var(--color-card); border: 1px solid var(--color-line); color: var(--color-ink); box-shadow: none; font-weight: 400; }
+dropdown > button:hover { border-color: var(--color-line-strong); }
+.notes-box { border-radius: 6px; border: 1px solid var(--color-line); background: var(--color-card); }
+.notes-box textview, .notes-box text { background: var(--color-card); color: var(--color-ink); padding: 6px 8px; }
+.bk-progress > trough { min-width: 40px; min-height: 8px; border: none; border-radius: 4px; background: var(--color-track); }
+.bk-progress > trough > progress { min-height: 8px; border: none; border-radius: 4px; background: var(--color-accent); }
+.bk-progress.success > trough > progress { background: var(--color-success); }
+.bk-progress.warning > trough > progress { background: var(--color-warning); }
+.star { min-width: 24px; min-height: 24px; padding: 0; background: none; box-shadow: none; color: var(--color-accent); }
+.star:hover { background: var(--color-raised); }
+.divider { min-height: 1px; background: var(--color-line-subtle); }
+.feedback { padding: 10px; border-radius: 8px; background: var(--color-card); border: 1px solid; }
+.feedback.error { border-color: var(--color-danger-ink); }
+.feedback.warning { border-color: var(--color-warning-ink); }
+.feedback.info { border-color: var(--color-accent-ink); }
+.feedback.success { border-color: var(--color-success-ink); }
+.feedback.error .chip-text, .feedback.error image { color: var(--color-danger-ink); }
+.feedback.warning .chip-text, .feedback.warning image { color: var(--color-warning-ink); }
+.feedback.info .chip-text, .feedback.info image { color: var(--color-accent-ink); }
+.feedback.success .chip-text, .feedback.success image { color: var(--color-success-ink); }
+
+/* ---------- Popovers ---------- */
+popover > contents { background: var(--color-card); border: 1px solid var(--color-line); border-radius: 10px; box-shadow: var(--shadow-popover); padding: 6px; color: var(--color-ink); }
+.menu-row { min-height: 34px; padding: 0 10px; border-radius: 6px; background: none; box-shadow: none; color: var(--color-ink); font-weight: 400; }
+.menu-row:hover { background: var(--color-raised); }
+.menu-row.current { background: var(--color-raised); font-weight: 600; }
+checkbutton check { border-radius: 4px; border: 1.5px solid var(--color-line-strong); background: var(--color-card); min-width: 16px; min-height: 16px; }
+checkbutton check:checked { background: var(--color-accent); border-color: var(--color-accent); color: var(--color-on-accent); }
+
+/* ---------- Analytics page ---------- */
+.card { background: var(--color-card); border: 1px solid var(--color-line); border-radius: 12px; box-shadow: none; }
+.card-pad { padding: 16px; }
+.stat-tile { background: var(--color-card); border: 1px solid var(--color-line); border-radius: 10px; padding: 10px; }
+.goal-of { min-height: 28px; padding: 0 4px; font-weight: 500; color: var(--color-ink-2); background: none; box-shadow: none; }
+.goal-of:hover { background: var(--color-raised); }
+.pace-chip { padding: 4px 10px; border-radius: 12px; background: var(--color-raised); font-size: 13px; font-weight: 600; }
+.pace-chip.ahead, .pace-chip.on-track { color: var(--color-success-ink); }
+.pace-chip.behind { color: var(--color-warning-ink); }
+.bar { border-radius: 3px 3px 0 0; background: var(--color-chart-1); }
+.bar.empty { min-height: 1px; background: var(--color-line); border-radius: 0; }
+.hbar { min-height: 10px; border-radius: 2px; }
+.chart-1 { background: var(--color-chart-1); }
+.chart-2 { background: var(--color-chart-2); }
+.chart-3 { background: var(--color-chart-3); }
+.chart-4 { background: var(--color-chart-4); }
+.chart-5 { background: var(--color-chart-5); }
+.table-row { padding: 6px 0; border-top: 1px solid var(--color-line-subtle); }
+
+/* ---------- Import and Export ---------- */
+.segmented { background: var(--color-raised); border-radius: 8px; padding: 3px; }
+.segmented button { min-height: 28px; padding: 0 12px; border-radius: 6px; background: none; box-shadow: none; font-weight: 500; color: var(--color-ink-2); }
+.segmented button:checked { background: var(--color-card); color: var(--color-ink); font-weight: 600; box-shadow: var(--shadow-tile); }
+.file-card { background: var(--color-raised); border-radius: 10px; padding: 10px 14px; }
+.preview-table { border: 1px solid var(--color-line); border-radius: 8px; }
+.preview-head { background: var(--color-raised); padding: 6px 10px; border-radius: 8px 8px 0 0; }
+.preview-row { padding: 6px 10px; border-top: 1px solid var(--color-line-subtle); }
+.dialog-footer { padding: 12px 18px; border-top: 1px solid var(--color-line); }
+.dialog-body { padding: 16px 18px; }
+
+/* ---------- Banner and dialogs ---------- */
+banner { background: var(--color-danger); color: var(--color-on-danger); }
+.about-table { border: 1px solid var(--color-line); border-radius: 8px; }
+.about-row { padding: 8px 10px; }
+.about-row + .about-row { border-top: 1px solid var(--color-line-subtle); }

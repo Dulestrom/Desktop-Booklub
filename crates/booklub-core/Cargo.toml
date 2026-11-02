@@ -1,0 +1,27 @@
+[package]
+name = "booklub-core"
+description = "Domain rules and storage for Booklub. Deliberately free of any GTK dependency (QA-38)."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish = false
+
+[dependencies]
+calamine = { version = "0.37", features = ["chrono"] }
+chrono.workspace = true
+icu_collator = "2"
+icu_locale_core = "2"
+image = { version = "0.25", default-features = false, features = ["jpeg", "png", "webp"] }
+regex = "1"
+rusqlite = "0.41"
+serde.workspace = true
+serde_json.workspace = true
+thiserror = "2"
+unicode-normalization = "0.1"
+uuid.workspace = true
+zip = { version = "9", default-features = false, features = ["deflate"] }
+
+[dev-dependencies]
+rust_xlsxwriter = "0.102"
+tempfile = "3"

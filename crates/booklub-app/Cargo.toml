@@ -1,0 +1,50 @@
+[package]
+name = "booklub-app"
+description = "A private, offline reading tracker. Your library stays in files on this device."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish = false
+
+[[bin]]
+name = "booklub"
+path = "src/main.rs"
+
+[features]
+# Lets a test run drive the app to a view and save a PNG of the window. Never in a release.
+dev-tools = []
+
+[dependencies]
+adw = { package = "libadwaita", version = "0.9", features = ["v1_9"] }
+booklub-core.workspace = true
+chrono.workspace = true
+gtk = { package = "gtk4", version = "0.11", features = ["v4_22"] }
+
+[build-dependencies]
+glib-build-tools = "0.22"
+
+[package.metadata.deb]
+name = "booklub"
+maintainer = "Booklub"
+copyright = "2026 Dulestrom"
+section = "misc"
+priority = "optional"
+extended-description = "Track your reading on Ubuntu: books as tiles, categories, goals and progress, all stored locally."
+depends = "libgtk-4-1, libadwaita-1-0, libsqlite3-0, fonts-manrope"
+assets = [
+  ["target/release/booklub", "usr/bin/", "755"],
+  ["target/release/THIRD-PARTY-NOTICES.txt", "usr/share/doc/booklub/", "644"],
+  ["data/io.github.dulestrom.Booklub.desktop", "usr/share/applications/", "644"],
+  ["data/io.github.dulestrom.Booklub.metainfo.xml", "usr/share/metainfo/", "644"],
+  ["data/booklub-mime.xml", "usr/share/mime/packages/", "644"],
+  ["../../assets/app-icon/booklub.svg", "usr/share/icons/hicolor/scalable/apps/io.github.dulestrom.Booklub.svg", "644"],
+  ["../../assets/app-icon/booklub-symbolic.svg", "usr/share/icons/hicolor/symbolic/apps/io.github.dulestrom.Booklub-symbolic.svg", "644"],
+  ["../../assets/app-icon/booklub-32.png", "usr/share/icons/hicolor/32x32/apps/io.github.dulestrom.Booklub.png", "644"],
+  ["../../assets/app-icon/booklub-48.png", "usr/share/icons/hicolor/48x48/apps/io.github.dulestrom.Booklub.png", "644"],
+  ["../../assets/app-icon/booklub-64.png", "usr/share/icons/hicolor/64x64/apps/io.github.dulestrom.Booklub.png", "644"],
+  ["../../assets/app-icon/booklub-128.png", "usr/share/icons/hicolor/128x128/apps/io.github.dulestrom.Booklub.png", "644"],
+  ["../../assets/app-icon/booklub-256.png", "usr/share/icons/hicolor/256x256/apps/io.github.dulestrom.Booklub.png", "644"],
+  ["../../assets/app-icon/booklub-512.png", "usr/share/icons/hicolor/512x512/apps/io.github.dulestrom.Booklub.png", "644"],
+  ["../../assets/file-icon/application-x-booklub.svg", "usr/share/icons/hicolor/scalable/mimetypes/application-x-booklub.svg", "644"],
+]

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gresources>
+  <gresource prefix="/io/github/dulestrom/Booklub">
+    <file>style.css</file>
+    <file alias="icons/scalable/actions/booklub-add-symbolic.svg" preprocess="xml-stripblanks">icons/booklub-add-symbolic.svg</file>
+    <file alias="icons/scalable/actions/booklub-settings-symbolic.svg" preprocess="xml-stripblanks">icons/booklub-settings-symbolic.svg</file>
+    <file alias="icons/scalable/actions/booklub-tile-small-symbolic.svg" preprocess="xml-stripblanks">icons/booklub-tile-small-symbolic.svg</file>
+    <file alias="icons/scalable/actions/booklub-tile-large-symbolic.svg" preprocess="xml-stripblanks">icons/booklub-tile-large-symbolic.svg</file>
+    <file alias="icons/scalable/actions/booklub-all-books-symbolic.svg" preprocess="xml-stripblanks">icons/booklub-all-books-symbolic.svg</file>
+    <file alias="icons/scalable/actions/booklub-back-symbolic.svg" preprocess="xml-stripblanks">icons/booklub-back-symbolic.svg</file>
+    <file alias="icons/scalable/actions/booklub-background-add-symbolic.svg" preprocess="xml-stripblanks">icons/booklub-background-add-symbolic.svg</file>
+    <file alias="icons/scalable/actions/booklub-background-remove-symbolic.svg" preprocess="xml-stripblanks">icons/booklub-background-remove-symbolic.svg</file>
+    <file alias="icons/scalable/actions/booklub-background-replace-symbolic.svg" preprocess="xml-stripblanks">icons/booklub-background-replace-symbolic.svg</file>
+    <file alias="icons/scalable/actions/booklub-backup-symbolic.svg" preprocess="xml-stripblanks">icons/booklub-backup-symbolic.svg</file>
+    <file alias="icons/scalable/actions/booklub-calendar-symbolic.svg" preprocess="xml-stripblanks">icons/booklub-calendar-symbolic.svg</file>
+    <file alias="icons/scalable/actions/booklub-category-symbolic.svg" preprocess="xml-stripblanks">icons/booklub-category-symbolic.svg</file>
+    <file alias="icons/scalable/actions/booklub-close-symbolic.svg" preprocess="xml-stripblanks">icons/booklub-close-symbolic.svg</file>
+    <file alias="icons/scalable/actions/booklub-delete-symbolic.svg" preprocess="xml-stripblanks">icons/booklub-delete-symbolic.svg</file>
+    <file alias="icons/scalable/actions/booklub-drag-handle-symbolic.svg" preprocess="xml-stripblanks">icons/booklub-drag-handle-symbolic.svg</file>
+    <file alias="icons/scalable/actions/booklub-error-symbolic.svg" preprocess="xml-stripblanks">icons/booklub-error-symbolic.svg</file>
+    <file alias="icons/scalable/actions/booklub-export-symbolic.svg" preprocess="xml-stripblanks">icons/booklub-export-symbolic.svg</file>
+    <file alias="icons/scalable/actions/booklub-filter-symbolic.svg" preprocess="xml-stripblanks">icons/booklub-filter-symbolic.svg</file>
+    <file alias="icons/scalable/actions/booklub-finished-symbolic.svg" preprocess="xml-stripblanks">icons/booklub-finished-symbolic.svg</file>
+    <file alias="icons/scalable/actions/booklub-home-symbolic.svg" preprocess="xml-stripblanks">icons/booklub-home-symbolic.svg</file>
+    <file alias="icons/scalable/actions/booklub-import-symbolic.svg" preprocess="xml-stripblanks">icons/booklub-import-symbolic.svg</file>
+    <file alias="icons/scalable/actions/booklub-isbn-symbolic.svg" preprocess="xml-stripblanks">icons/booklub-isbn-symbolic.svg</file>
+    <file alias="icons/scalable/actions/booklub-menu-symbolic.svg" preprocess="xml-stripblanks">icons/booklub-menu-symbolic.svg</file>
+    <file alias="icons/scalable/actions/booklub-pace-ahead-symbolic.svg" preprocess="xml-stripblanks">icons/booklub-pace-ahead-symbolic.svg</file>
+    <file alias="icons/scalable/actions/booklub-pace-behind-symbolic.svg" preprocess="xml-stripblanks">icons/booklub-pace-behind-symbolic.svg</file>
+    <file alias="icons/scalable/actions/booklub-pace-on-track-symbolic.svg" preprocess="xml-stripblanks">icons/booklub-pace-on-track-symbolic.svg</file>
+    <file alias="icons/scalable/actions/booklub-priority-high-symbolic.svg" preprocess="xml-stripblanks">icons/booklub-priority-high-symbolic.svg</file>
+    <file alias="icons/scalable/actions/booklub-progress-symbolic.svg" preprocess="xml-stripblanks">icons/booklub-progress-symbolic.svg</file>
+    <file alias="icons/scalable/actions/booklub-reading-symbolic.svg" preprocess="xml-stripblanks">icons/booklub-reading-symbolic.svg</file>
+    <file alias="icons/scalable/actions/booklub-restore-symbolic.svg" preprocess="xml-stripblanks">icons/booklub-restore-symbolic.svg</file>
+    <file alias="icons/scalable/actions/booklub-search-symbolic.svg" preprocess="xml-stripblanks">icons/booklub-search-symbolic.svg</file>
+    <file alias="icons/scalable/actions/booklub-sort-symbolic.svg" preprocess="xml-stripblanks">icons/booklub-sort-symbolic.svg</file>
+    <file alias="icons/scalable/actions/booklub-spreadsheet-symbolic.svg" preprocess="xml-stripblanks">icons/booklub-spreadsheet-symbolic.svg</file>
+    <file alias="icons/scalable/actions/booklub-star-filled-symbolic.svg" preprocess="xml-stripblanks">icons/booklub-star-filled-symbolic.svg</file>
+    <file alias="icons/scalable/actions/booklub-star-symbolic.svg" preprocess="xml-stripblanks">icons/booklub-star-symbolic.svg</file>
+    <file alias="icons/scalable/actions/booklub-sub-category-symbolic.svg" preprocess="xml-stripblanks">icons/booklub-sub-category-symbolic.svg</file>
+    <file alias="icons/scalable/actions/booklub-success-symbolic.svg" preprocess="xml-stripblanks">icons/booklub-success-symbolic.svg</file>
+    <file alias="icons/scalable/actions/booklub-to-read-symbolic.svg" preprocess="xml-stripblanks">icons/booklub-to-read-symbolic.svg</file>
+    <file alias="icons/scalable/actions/booklub-uncategorized-symbolic.svg" preprocess="xml-stripblanks">icons/booklub-uncategorized-symbolic.svg</file>
+    <file alias="icons/scalable/actions/booklub-warning-symbolic.svg" preprocess="xml-stripblanks">icons/booklub-warning-symbolic.svg</file>
+    <file alias="icons/scalable/actions/booklub-check-symbolic.svg" preprocess="xml-stripblanks">icons/booklub-check-symbolic.svg</file>
+    <file alias="category-art/dusk-dunes.jpg">category-art/dusk-dunes.jpg</file>
+    <file alias="category-art/teal-geometry.jpg">category-art/teal-geometry.jpg</file>
+    <file alias="category-art/violet-bloom.jpg">category-art/violet-bloom.jpg</file>
+    <file alias="category-art/very-bright.jpg">category-art/very-bright.jpg</file>
+    <file alias="category-art/very-busy.jpg">category-art/very-busy.jpg</file>
+    <file alias="category-art/forest-mist.jpg">category-art/forest-mist.jpg</file>
+    <file alias="category-art/ink-wash.jpg">category-art/ink-wash.jpg</file>
+    <file alias="category-art/ochre-fields.jpg">category-art/ochre-fields.jpg</file>
+    <file alias="logo/app-icon.svg">app-icon/booklub.svg</file>
+    <file alias="logo/booklub-mark.svg">logo/booklub-mark.svg</file>
+    <file alias="logo/booklub-mark-dark.svg">logo/booklub-mark-dark.svg</file>
+    <file alias="logo/booklub-logo-light.svg">logo/booklub-logo-light.svg</file>
+    <file alias="logo/booklub-logo-dark.svg">logo/booklub-logo-dark.svg</file>
+    <file alias="illustrations/empty-library-light.svg">illustrations/empty-library-light.svg</file>
+    <file alias="illustrations/empty-library-dark.svg">illustrations/empty-library-dark.svg</file>
+    <file alias="illustrations/no-matches-light.svg">illustrations/no-matches-light.svg</file>
+    <file alias="illustrations/no-matches-dark.svg">illustrations/no-matches-dark.svg</file>
+  </gresource>
+</gresources>

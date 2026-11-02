@@ -1,0 +1,8 @@
+target/
+dist/
+# Never publish a library, a backup, or local settings.
+*.sqlite3
+*.booklub
+preferences.json
+.claude/
+.env*

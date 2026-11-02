@@ -1,0 +1,27 @@
+[workspace]
+resolver = "2"
+members = ["crates/booklub-core", "crates/booklub-app"]
+exclude = ["spikes"]
+
+[workspace.package]
+version = "1.2.1"
+edition = "2021"
+rust-version = "1.93"
+license = "ISC"
+repository = "https://github.com/Dulestrom/Desktop-Booklub"
+
+[workspace.dependencies]
+booklub-core = { path = "crates/booklub-core" }
+chrono = { version = "0.4", default-features = false, features = ["clock", "std"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+uuid = { version = "1", features = ["v4"] }
+
+[profile.release]
+opt-level = 3
+lto = "thin"
+strip = "symbols"
+
+# Decoding a 20 MB image in an unoptimised build would make debug runs misleadingly slow.
+[profile.dev.package."*"]
+opt-level = 2

@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=Booklub
+Comment=A private, offline reading tracker
+Exec=booklub
+Icon=io.github.dulestrom.Booklub
+Terminal=false
+Categories=Office;
+Keywords=books;reading;library;tracker;
+StartupNotify=true
+SingleMainWindow=true

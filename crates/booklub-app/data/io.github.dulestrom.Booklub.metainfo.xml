@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.dulestrom.Booklub</id>
+  <name>Booklub</name>
+  <summary>A private, offline reading tracker</summary>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>ISC</project_license>
+  <description>
+    <p>Booklub shows your reading as a visual library: categories as wide tiles and books as tall ones, each with its own background. Track pages, dates, ratings and yearly goals. Your library stays in files on this device and nothing is sent anywhere.</p>
+  </description>
+  <launchable type="desktop-id">io.github.dulestrom.Booklub.desktop</launchable>
+  <url type="homepage">https://github.com/Dulestrom/Desktop-Booklub</url>
+  <developer id="io.github.dulestrom"><name>Dulestrom</name></developer>
+  <content_rating type="oars-1.1"/>
+  <releases><release version="1.2.1" date="2026-11-02"/><release version="1.2.0" date="2026-11-02"/><release version="1.1.2" date="2026-11-02"/><release version="1.1.1" date="2026-11-02"/><release version="1.1.0" date="2026-11-02"/><release version="1.0.0" date="2026-11-01"/></releases>
+</component>
