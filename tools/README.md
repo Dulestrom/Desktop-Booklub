@@ -41,3 +41,12 @@ Publish only packages built this way. A plain `cargo deb` skips the checks below
 The script runs `tools/third_party_notices.py`, which needs `python3` and writes `target/release/THIRD-PARTY-NOTICES.txt`. The package installs it to `/usr/share/doc/booklub/`. It holds Booklub's licence, the licence files of every Rust crate compiled into the app, and the copyright file of the Rust standard library, because their licences require those notices to travel with the binary. Identical texts are grouped.
 
 The build stops if a crate has no licence file, or if its files don't contain the licence it declares. If it names a licence the script doesn't know yet, add that licence to `LICENCE_MARKERS`. If a crate really ships no text, replace the crate or get the text from its authors rather than removing the check.
+
+## Publishing a release
+
+Build the package, then attach it under the stable name that the README's download link uses. Replace `X.Y.Z` with the version in `Cargo.toml`.
+
+```bash
+cp dist/booklub_X.Y.Z-1_amd64.deb dist/booklub_amd64.deb
+gh release create vX.Y.Z dist/booklub_amd64.deb --title "Booklub X.Y.Z" --generate-notes
+```

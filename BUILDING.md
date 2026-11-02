@@ -12,22 +12,22 @@ If you try Windows or macOS, please open an issue saying what worked and what di
 
 ## Ubuntu
 
+To build the package and install it in one step:
+
+```bash
+./install.sh
+```
+
+To run it without installing, first install what it needs:
+
 ```bash
 sudo apt install rustc cargo libgtk-4-dev libadwaita-1-dev libsqlite3-dev pkg-config build-essential fonts-manrope
 ```
 
+Then run it:
+
 ```bash
 cargo run -p booklub-app --release
-```
-
-To build an installable package:
-
-```bash
-cargo install cargo-deb
-```
-
-```bash
-tools/build_release.sh
 ```
 
 ## Windows

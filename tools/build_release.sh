@@ -19,7 +19,8 @@ if [ ! -s "$binary" ] || ! cmp -s "$notices" "$shipped_notices"; then
     echo "REFUSING: $package is missing its binary or current licence notices" >&2
     exit 1
 fi
-for leak in "$HOME" "$USER" BOOKLUB_E2E BOOKLUB_SHOT; do
+# The home folder rather than the bare username, which could match ordinary text in the binary.
+for leak in "$HOME/" BOOKLUB_E2E BOOKLUB_SHOT; do
     # Search the files directly: under pipefail, a pipe into grep -q hides the match it finds.
     if grep -aqF -- "$leak" "$binary" "$shipped_notices"; then
         echo "REFUSING: $package contains '$leak'" >&2

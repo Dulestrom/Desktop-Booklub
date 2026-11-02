@@ -82,33 +82,43 @@ There's no account, no server, and no network access.
 
 ## Install
 
-Booklub is built and tested on Ubuntu 26.04. It needs Rust, GTK 4.22, and libadwaita 1.9 or newer.
+Booklub runs on Ubuntu 26.04 or newer on 64-bit Intel or AMD, because it needs GTK 4.22 and libadwaita 1.9.
+
+### Download it
+
+No compiling needed. Download the package:
 
 ```bash
-sudo apt install rustc cargo libgtk-4-dev libadwaita-1-dev libsqlite3-dev pkg-config build-essential fonts-manrope
+wget -O /tmp/booklub.deb https://github.com/Dulestrom/Desktop-Booklub/releases/latest/download/booklub_amd64.deb
 ```
 
-To try it without installing:
+Then install it:
 
 ```bash
-cargo run -p booklub-app --release
+sudo apt install /tmp/booklub.deb
 ```
 
-To build an installable package, and install it:
+Booklub then appears in your application grid. You can also get the package from the [Releases page](https://github.com/Dulestrom/Desktop-Booklub/releases).
+
+### Build it yourself
+
+Get the source:
 
 ```bash
-cargo install cargo-deb
+git clone https://github.com/Dulestrom/Desktop-Booklub.git
 ```
 
 ```bash
-tools/build_release.sh
+cd Desktop-Booklub
 ```
+
+Then this one script installs what the build needs, builds the package, and installs it. The first build takes a few minutes.
 
 ```bash
-sudo apt install ./dist/booklub_1.2.1-1_amd64.deb
+./install.sh
 ```
 
-Booklub then appears in your application grid. [BUILDING.md](BUILDING.md) has the Windows and macOS steps, which should work but haven't been tested yet.
+To try Booklub without installing it, install the packages listed in [BUILDING.md](BUILDING.md) and run `cargo run -p booklub-app --release`. BUILDING.md also has the Windows and macOS steps, which should work but haven't been tested yet.
 
 ## Where your data lives
 
