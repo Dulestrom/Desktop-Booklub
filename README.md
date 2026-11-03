@@ -15,7 +15,8 @@ There's no account, no server, and no network access.
 - Set a status: To Read, Reading, or Finished
 - Set a priority: High, Medium, or Low
 - ISBN-10 and ISBN-13 are checked as you save
-- Edit in a side panel that asks before discarding unsaved changes, and closes with Esc
+- Click a book to see it read-only in a side panel, and right-click it (or press Shift+F10) to edit
+- The editor asks before discarding unsaved changes, and the panel closes with Esc
 
 ### Categories
 

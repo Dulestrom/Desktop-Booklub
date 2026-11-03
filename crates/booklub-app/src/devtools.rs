@@ -88,6 +88,49 @@ fn step(app: &Rc<App>, script: &str) {
         "inspector" => {
             navigate(app, View::AllBooks);
             if let Some(book) = first_book(app, |book| book.background_file.is_some()) {
+                window::edit_book(app, &book.id);
+            }
+        }
+        // Opens the first context menu found under a view: "menu:books" or "menu:home".
+        "menu" => {
+            let books = parts.next() != Some("home");
+            navigate(app, if books { View::AllBooks } else { View::Home });
+            let scope: gtk::Widget = if books { app.ui().canvas.clone().upcast() } else { app.ui().home_categories.clone().upcast() };
+            glib::timeout_add_local_once(Duration::from_millis(600), move || {
+                fn find(widget: &gtk::Widget) -> Option<gtk::Popover> {
+                    let mut child = widget.first_child();
+                    while let Some(current) = child {
+                        if let Some(found) = current.downcast_ref::<gtk::Popover>() {
+                            return Some(found.clone());
+                        }
+                        if let Some(found) = find(&current) {
+                            return Some(found);
+                        }
+                        child = current.next_sibling();
+                    }
+                    None
+                }
+                if let Some(popover) = find(&scope) {
+                    popover.set_pointing_to(Some(&gdk::Rectangle::new(60, 60, 1, 1)));
+                    popover.popup();
+                    // A popover is its own surface, so the window capture misses it: save it too.
+                    let menu_path = std::env::var("BOOKLUB_MENU_SHOT").ok();
+                    glib::timeout_add_local_once(Duration::from_millis(250), move || {
+                        let (Some(path), Some(content)) = (menu_path, popover.child()) else { return };
+                        let paintable = gtk::WidgetPaintable::new(Some(&content));
+                        let snapshot = gtk::Snapshot::new();
+                        paintable.snapshot(&snapshot, f64::from(content.width()), f64::from(content.height()));
+                        if let (Some(node), Some(renderer)) = (snapshot.to_node(), popover.native().and_then(|native| native.renderer())) {
+                            let _ = renderer.render_texture(&node, None).save_to_png(&path);
+                        }
+                    });
+                }
+            });
+        }
+        "preview" => {
+            navigate(app, View::AllBooks);
+            let pick = parts.next().unwrap_or_default().to_string();
+            if let Some(book) = first_book(app, |book| book.background_file.is_some() && (pick.is_empty() || book.title.contains(&pick))) {
                 window::open_book(app, book);
             }
         }
@@ -393,6 +436,8 @@ async fn e2e(app: Rc<App>) {
 
     display_checks(&app, &mut c).await;
 
+    preview_checks(&app, &mut c).await;
+
     // REQ-03
     let doomed = app.library.borrow().books[0].clone();
     c.check("delete removes the book and renumbers (REQ-03, REQ-07c)", app.delete_book(&doomed) && {
@@ -592,6 +637,49 @@ async fn e2e(app: Rc<App>) {
 
     println!("RESULT {} passed, {} failed", c.passed, c.failed);
     std::process::exit(i32::from(c.failed > 0));
+}
+
+/// REQ-50 to REQ-51b: a click previews, and only the context menu's Edit opens the editor.
+async fn preview_checks(app: &Rc<App>, c: &mut Checks) {
+    let ui = app.ui();
+    let inspector = ui.inspector.clone();
+    navigate(app, View::AllBooks);
+    pause(50).await;
+    let Some(mut book) = app.library.borrow().books.first().cloned() else { return };
+    book.author = "Preview Author".into();
+    book.total_pages = Some(200);
+    book.priority = booklub_core::Priority::High;
+    app.save_book(&book);
+    booklub_core::rules::apply_page_change(&mut book, 50);
+    app.save_book(&book);
+    let book = app.book(&book.id).expect("just saved");
+
+    window::open_book(app, book.clone());
+    pause(80).await;
+    let (title, author, _, status, priority) = inspector.dev_preview_text();
+    c.check("a click shows the read-only preview (REQ-50)", ui.inspector_visible() && inspector.is_previewing());
+    c.check("the preview names the book (REQ-50a)", title == book.title && author == "Preview Author");
+    c.check("the preview shows status and priority (REQ-50a)", status == book.status.as_str() && priority == "High priority");
+    c.check("a preview has nothing unsaved", !inspector.is_dirty());
+    c.check("Esc closes the preview (REQ-44f)", window::handle_escape(app) == glib::Propagation::Stop && !ui.inspector_visible());
+
+    window::open_book(app, book.clone());
+    window::edit_book(app, &book.id);
+    pause(80).await;
+    c.check("Edit in the context menu opens the editor (REQ-51a)", ui.inspector_visible() && !inspector.is_previewing() && inspector.dev_title() == book.title);
+    inspector.close();
+
+    let mut changed = book.clone();
+    changed.author = "Changed Elsewhere".into();
+    window::open_book(app, book.clone());
+    app.save_book(&changed);
+    window::refresh(app);
+    pause(50).await;
+    c.check("the preview follows changes to its book", inspector.dev_preview_text().1 == "Changed Elsewhere");
+    inspector.close();
+
+    let (xalign, fills) = window::dev_menu_row_alignment();
+    c.check("context-menu labels sit against the start edge", xalign == 0.0 && fills);
 }
 
 /// REQ-08j, REQ-46, REQ-47, REQ-48: section headings, tiles that fill the row, the slider, and

@@ -5,7 +5,8 @@ use std::rc::Rc;
 
 use adw::prelude::*;
 use booklub_core::background::{self, CheckedImage, ImageError};
-use booklub_core::rules::{self, FieldErrors};
+use booklub_core::query::CategoryIndex;
+use booklub_core::rules::{self, completion_percent, has_progress, initials, FieldErrors};
 use booklub_core::{isbn, Book, Priority, Status};
 use gtk::{gio, glib};
 
@@ -104,9 +105,151 @@ fn pair(left: &impl IsA<gtk::Widget>, right: &impl IsA<gtk::Widget>) -> gtk::Box
     row
 }
 
+/// REQ-50: the read-only view of one book that a click shows. Editing is a separate page,
+/// reached only through the tile's context menu (D-12).
+struct Preview {
+    cover: gtk::Picture,
+    initials: gtk::Label,
+    title: gtk::Label,
+    author: gtk::Label,
+    status: gtk::Label,
+    status_icon: gtk::Image,
+    priority: gtk::Label,
+    priority_icon: gtk::Image,
+    shelf: gtk::Label,
+    progress_card: gtk::Box,
+    pages: gtk::Label,
+    percent: gtk::Label,
+    bar: gtk::ProgressBar,
+}
+
+impl Preview {
+    fn new() -> (Self, gtk::ScrolledWindow) {
+        let (cover_host, cover) = crate::tiles::sized_tile(112, 168, "preview-cover");
+        cover_host.set_halign(gtk::Align::Center);
+        let initials = label("", &["tile-initials"]);
+        initials.set_halign(gtk::Align::Center);
+        initials.set_valign(gtk::Align::Center);
+        cover_host.add_overlay(&initials);
+
+        let centred = |text: &gtk::Label| {
+            text.set_xalign(0.5);
+            text.set_justify(gtk::Justification::Center);
+            text.set_wrap(true);
+            text.set_wrap_mode(gtk::pango::WrapMode::WordChar);
+        };
+        let title = label("", &["title-2"]);
+        centred(&title);
+        title.set_selectable(true);
+        let author = label("", &["body", "accent-ink"]);
+        centred(&author);
+
+        let chip = |glyph: &str| {
+            let image = icon(glyph);
+            let text = label("", &["chip-label"]);
+            let row = hbox(5);
+            row.add_css_class("preview-chip");
+            row.append(&image);
+            row.append(&text);
+            (row, image, text)
+        };
+        let (status_chip, status_icon, status) = chip("reading");
+        let (priority_chip, priority_icon, priority) = chip("priority-high");
+        let chips = hbox(6);
+        chips.set_halign(gtk::Align::Center);
+        chips.append(&status_chip);
+        chips.append(&priority_chip);
+
+        let shelf = label("", &["caption-2"]);
+        centred(&shelf);
+
+        let pages = label("", &["caption-2"]);
+        pages.set_hexpand(true);
+        let percent = label("", &["body-strong"]);
+        let progress_top = hbox(8);
+        progress_top.append(&pages);
+        progress_top.append(&percent);
+        let bar = util::progress_bar(0, "");
+        let progress_card = vbox(8);
+        progress_card.add_css_class("preview-card");
+        progress_card.append(&progress_top);
+        progress_card.append(&bar);
+
+        let hint = hbox(6);
+        hint.add_css_class("caption");
+        hint.append(&icon("edit"));
+        let hint_text = label("Right-click the tile, or press Shift+F10, to edit", &["caption"]);
+        hint_text.set_wrap(true);
+        hint_text.set_hexpand(true);
+        hint.append(&hint_text);
+
+        let body = vbox(10);
+        body.add_css_class("inspector-body");
+        body.append(&cover_host);
+        body.append(&title);
+        body.append(&author);
+        body.append(&chips);
+        body.append(&shelf);
+        body.append(&progress_card);
+        body.append(&hint);
+        let scroller = gtk::ScrolledWindow::builder().child(&body).hscrollbar_policy(gtk::PolicyType::Never).vexpand(true).build();
+        (Self { cover, initials, title, author, status, status_icon, priority, priority_icon, shelf, progress_card, pages, percent, bar }, scroller)
+    }
+
+    fn fill(&self, book: &Book, index: &CategoryIndex, thumbs: &crate::thumbs::Thumbs) {
+        match &book.background_file {
+            Some(file) => {
+                self.initials.set_visible(false);
+                thumbs.request_now(file, &self.cover);
+            }
+            None => {
+                thumbs.release(&self.cover);
+                self.initials.set_visible(true);
+                self.initials.set_label(&initials(&book.title));
+            }
+        }
+        self.title.set_label(&book.title);
+        self.author.set_label(&book.author);
+        self.author.set_visible(!book.author.is_empty());
+
+        self.status.set_label(book.status.as_str());
+        let glyph = match book.status {
+            Status::Reading => "reading",
+            Status::ToRead => "to-read",
+            Status::Finished => "finished",
+        };
+        self.status_icon.set_icon_name(Some(&format!("booklub-{glyph}-symbolic")));
+        self.priority.set_label(&format!("{} priority", book.priority.as_str()));
+        self.priority_icon.set_visible(book.priority == Priority::High);
+
+        let category = index.category_name(book.category_id.as_deref());
+        let sub_category = index.sub_category_name(book.sub_category_id.as_deref());
+        self.shelf.set_label(&match (category.is_empty(), sub_category.is_empty()) {
+            (true, _) => "Uncategorized".to_string(),
+            (false, true) => category.to_string(),
+            (false, false) => format!("{category} \u{203a} {sub_category}"),
+        });
+
+        self.progress_card.set_visible(has_progress(book));
+        let percent = completion_percent(book);
+        self.pages.set_label(&format!("Page {} of {}", book.current_page, book.total_pages.unwrap_or(0)));
+        self.percent.set_label(&format!("{percent}%"));
+        self.bar.set_fraction(f64::from(percent.min(100)) / 100.0);
+        if book.status == Status::Finished {
+            self.bar.add_css_class("success");
+        } else {
+            self.bar.remove_css_class("success");
+        }
+    }
+}
+
 pub struct Inspector {
     app: Rc<App>,
     root: adw::ToolbarView,
+    pages: gtk::Stack,
+    preview_page: Preview,
+    /// The book the preview shows, when the preview is the page in view.
+    previewing: RefCell<Option<String>>,
     heading: gtk::Label,
     draft: RefCell<Book>,
     original: RefCell<Book>,
@@ -320,11 +463,18 @@ impl Inspector {
         top_bar.append(&header);
         top_bar.append(&title_row);
         root.add_top_bar(&top_bar);
-        root.set_content(Some(&scroller));
+        let (preview_page, preview_scroller) = Preview::new();
+        let pages = gtk::Stack::builder().transition_type(gtk::StackTransitionType::None).build();
+        pages.add_named(&preview_scroller, Some("preview"));
+        pages.add_named(&scroller, Some("edit"));
+        root.set_content(Some(&pages));
 
         let this = Rc::new(Self {
             app,
             root,
+            pages,
+            preview_page,
+            previewing: RefCell::new(None),
             heading,
             draft: RefCell::new(Book::new(0)),
             original: RefCell::new(Book::new(0)),
@@ -654,6 +804,7 @@ impl Inspector {
 
     pub fn close(&self) {
         self.has_book.set(false);
+        self.previewing.replace(None);
         *self.pending.borrow_mut() = PendingBackground::Unchanged;
         self.app.ui().show_inspector(false);
         // Keyboard users carry on from the books, rather than from a panel that has gone.
@@ -662,7 +813,40 @@ impl Inspector {
     }
 
     /// REQ-33c, REQ-44d
+    /// REQ-50: shows the book read-only. Nothing here can be edited, so there is nothing to lose.
+    pub fn show_preview(&self, book: &Book) {
+        self.has_book.set(false);
+        *self.pending.borrow_mut() = PendingBackground::Unchanged;
+        self.previewing.replace(Some(book.id.clone()));
+        self.heading.set_label("Book");
+        self.preview_page.fill(book, &self.app.index(), &self.app.thumbs);
+        self.pages.set_visible_child_name("preview");
+        self.app.ui().show_inspector(true);
+    }
+
+    /// Keeps the preview in step with the library, and closes it when its book has gone.
+    pub fn refresh_preview(&self) {
+        let Some(id) = self.previewing.borrow().clone() else { return };
+        match self.app.book(&id) {
+            Some(book) => self.preview_page.fill(&book, &self.app.index(), &self.app.thumbs),
+            None => self.close(),
+        }
+    }
+
+    #[cfg(feature = "dev-tools")]
+    pub fn is_previewing(&self) -> bool {
+        self.previewing.borrow().is_some()
+    }
+
+    #[cfg(feature = "dev-tools")]
+    pub fn dev_preview_text(&self) -> (String, String, String, String, String) {
+        let page = &self.preview_page;
+        (page.title.label().into(), page.author.label().into(), page.shelf.label().into(), page.status.label().into(), page.priority.label().into())
+    }
+
     pub fn open(&self, book: Book, is_new: bool) {
+        self.previewing.replace(None);
+        self.pages.set_visible_child_name("edit");
         self.has_book.set(true);
         self.is_new.set(is_new);
         self.generation.set(self.generation.get() + 1);

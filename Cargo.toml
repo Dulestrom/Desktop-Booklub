@@ -4,7 +4,7 @@ members = ["crates/booklub-core", "crates/booklub-app"]
 exclude = ["spikes"]
 
 [workspace.package]
-version = "1.2.1"
+version = "1.3.0"
 edition = "2021"
 rust-version = "1.93"
 license = "ISC"

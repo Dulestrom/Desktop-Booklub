@@ -662,6 +662,7 @@ fn book_canvas(app: &Rc<App>) -> BookCanvas {
                 }
             },
         );
+        attach_book_menu(&app_clone, root, id.clone());
         // Not single_click_activate: that also selects whatever the pointer hovers over.
         let (id_for_click, app_for_click) = (id.clone(), app_clone.clone());
         util::on_activate(root, move || {
@@ -740,13 +741,31 @@ fn refresh_status_bar(app: &Rc<App>) {
     }
 }
 
+/// REQ-50: a click shows the book read-only. Unsaved edits to another book are asked about first.
 pub fn open_book(app: &Rc<App>, book: Book) {
+    let app = app.clone();
+    let inspector = app.ui().inspector.clone();
+    inspector.guard(move || {
+        select_in_grid(&app, &book.id);
+        app.ui().inspector.show_preview(&book);
+    });
+}
+
+/// REQ-51a: Edit in a tile's context menu opens the editor.
+pub fn edit_book(app: &Rc<App>, id: &str) {
+    let Some(book) = app.book(id) else { return };
     let app = app.clone();
     let inspector = app.ui().inspector.clone();
     inspector.guard(move || {
         select_in_grid(&app, &book.id);
         app.ui().inspector.open(book.clone(), false);
     });
+}
+
+/// REQ-51, REQ-51b: right-click, the Menu key, or Shift+F10 on a book tile.
+fn attach_book_menu(app: &Rc<App>, widget: &impl IsA<gtk::Widget>, id: Rc<RefCell<String>>) {
+    let app = app.clone();
+    attach_context_menu(widget, None, vec![(Some("edit"), "Edit", Rc::new(move || edit_book(&app, &id.borrow())))]);
 }
 
 fn select_in_grid(app: &App, id: &str) {
@@ -793,6 +812,7 @@ pub fn refresh(app: &Rc<App>) {
     }
     refresh_filter_badge(app);
     refresh_status_bar(app);
+    ui.inspector.refresh_preview();
 }
 
 fn refresh_counts(app: &Rc<App>) {
@@ -1104,17 +1124,33 @@ fn rebuild_home(app: &Rc<App>) {
         tile.bind(book, &app.thumbs, false);
         let (app_for_open, book_for_open) = (app.clone(), book.clone());
         util::on_activate(&tile.root, move || open_book(&app_for_open, book_for_open.clone()));
+        attach_book_menu(app, &tile.root, Rc::new(RefCell::new(book.id.clone())));
         ui.home_reading.append(&tile.root);
     }
 }
 
+type MenuAction = (Option<&'static str>, &'static str, Rc<dyn Fn()>);
+
+/// One context-menu row: an optional glyph, then its label against the start edge.
+fn menu_row(glyph: Option<&str>, text: &str) -> gtk::Button {
+    let content = hbox(10);
+    if let Some(glyph) = glyph {
+        content.append(&icon(glyph));
+    }
+    let name = gtk::Label::builder().label(text).xalign(0.0).hexpand(true).build();
+    content.append(&name);
+    let row = gtk::Button::builder().child(&content).css_classes(["menu-row"]).build();
+    row.update_property(&[gtk::accessible::Property::Label(text)]);
+    row
+}
+
 /// REQ-32j: Rename and Delete, by right-click or the Menu key.
-fn attach_context_menu(widget: &impl IsA<gtk::Widget>, focus_host: Option<&gtk::Widget>, actions: Vec<(&'static str, Rc<dyn Fn()>)>) {
+fn attach_context_menu(widget: &impl IsA<gtk::Widget>, focus_host: Option<&gtk::Widget>, actions: Vec<MenuAction>) {
     let widget = widget.upcast_ref::<gtk::Widget>().clone();
     let popover = gtk::Popover::builder().has_arrow(false).build();
     let list = vbox(0);
-    for (text, action) in actions {
-        let row = gtk::Button::builder().label(text).css_classes(["menu-row"]).build();
+    for (glyph, text, action) in actions {
+        let row = menu_row(glyph, text);
         let popover_clone = popover.clone();
         row.connect_clicked(move |_| {
             popover_clone.popdown();
@@ -1157,8 +1193,8 @@ fn attach_category_menu(app: &Rc<App>, tile: &gtk::Overlay, id: &str) {
         None,
         vec![
             // REQ-45i
-            ("Choose Background\u{2026}", Rc::new(move || crate::category_background::present(&art_app, &art_id))),
-            ("Rename", Rc::new(move || {
+            (Some("background-replace"), "Choose Background\u{2026}", Rc::new(move || crate::category_background::present(&art_app, &art_id))),
+            (Some("edit"), "Rename", Rc::new(move || {
                 let name = rename_app.index().category_name(Some(&rename_id)).to_string();
                 let (app, id) = (rename_app.clone(), rename_id.clone());
                 dialogs::ask_name(&rename_app, "Rename Category", "Name", &name, "Rename", move |name| {
@@ -1167,7 +1203,7 @@ fn attach_category_menu(app: &Rc<App>, tile: &gtk::Overlay, id: &str) {
                     }
                 });
             })),
-            ("Delete", Rc::new(move || dialogs::confirm_delete_category(&delete_app, &delete_id))),
+            (Some("delete"), "Delete", Rc::new(move || dialogs::confirm_delete_category(&delete_app, &delete_id))),
         ],
     );
 }
@@ -1216,7 +1252,7 @@ fn rebuild_strip(app: &Rc<App>) {
             &tile,
             None,
             vec![
-                ("Rename", Rc::new(move || {
+                (Some("edit"), "Rename", Rc::new(move || {
                     let (app, category, sub) = (rename_app.clone(), rename_cat.clone(), rename_sub.clone());
                     dialogs::ask_name(&rename_app, "Rename Sub-category", "Name", &rename_name, "Rename", move |name| {
                         if app.rename_sub_category(&category, &sub, &name) {
@@ -1224,7 +1260,7 @@ fn rebuild_strip(app: &Rc<App>) {
                         }
                     });
                 })),
-                ("Delete", Rc::new(move || dialogs::confirm_delete_sub(&delete_app, &delete_cat, &delete_sub))),
+                (Some("delete"), "Delete", Rc::new(move || dialogs::confirm_delete_sub(&delete_app, &delete_cat, &delete_sub))),
             ],
         );
 
@@ -1448,4 +1484,12 @@ pub fn dev_home_category_tiles(app: &App) -> (usize, bool) {
     let flow = &app.ui().home_categories;
     let count = flow.dev_child_count();
     (count, flow.is_visible() && app.ui().home_empty.is_visible())
+}
+
+/// The label alignment of a context-menu row, for the left-alignment check.
+#[cfg(feature = "dev-tools")]
+pub fn dev_menu_row_alignment() -> (f32, bool) {
+    let row = menu_row(Some("edit"), "Edit");
+    let label = row.child().and_then(|content| content.last_child()).and_downcast::<gtk::Label>().expect("a label");
+    (label.xalign(), label.hexpands())
 }

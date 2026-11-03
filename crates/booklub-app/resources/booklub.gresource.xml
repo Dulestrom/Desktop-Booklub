@@ -3,6 +3,7 @@
   <gresource prefix="/io/github/dulestrom/Booklub">
     <file>style.css</file>
     <file alias="icons/scalable/actions/booklub-add-symbolic.svg" preprocess="xml-stripblanks">icons/booklub-add-symbolic.svg</file>
+    <file alias="icons/scalable/actions/booklub-edit-symbolic.svg" preprocess="xml-stripblanks">icons/booklub-edit-symbolic.svg</file>
     <file alias="icons/scalable/actions/booklub-settings-symbolic.svg" preprocess="xml-stripblanks">icons/booklub-settings-symbolic.svg</file>
     <file alias="icons/scalable/actions/booklub-tile-small-symbolic.svg" preprocess="xml-stripblanks">icons/booklub-tile-small-symbolic.svg</file>
     <file alias="icons/scalable/actions/booklub-tile-large-symbolic.svg" preprocess="xml-stripblanks">icons/booklub-tile-large-symbolic.svg</file>
