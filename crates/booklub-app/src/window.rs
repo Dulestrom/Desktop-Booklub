@@ -210,6 +210,7 @@ pub fn open(application: &adw::Application) {
         thumbs,
         ui: OnceCell::new(),
         updating: Cell::new(false),
+        sync: Default::default(),
     });
 
     let ui = build(&app, &window);
@@ -232,6 +233,13 @@ pub fn open(application: &adw::Application) {
         inspector.guard(move || window.destroy());
         glib::Propagation::Stop
     });
+
+    // Android SRS REQ-22e: sync runs only if the Reader turned it on.
+    if app.preferences.get().sync_enabled {
+        if let Err(problem) = crate::sync::start(&app) {
+            app.sync.problem.replace(Some(problem));
+        }
+    }
 
     window.present();
     // The ring appears once the keyboard is used (QA-12), rather than on a row at launch.

@@ -132,27 +132,62 @@ fn segmented<T: Copy + PartialEq + 'static>(heading: &str, options: &[(&str, T)]
     row
 }
 
-/// REQ-31h, REQ-47, REQ-48
-pub fn settings(app: &Rc<App>) {
-    let dialog = adw::Dialog::builder().content_width(420).title("Settings").build();
-    let body = vbox(10);
-    body.set_margin_start(24);
-    body.set_margin_end(24);
-    body.set_margin_bottom(24);
+/// Which page Settings opens on.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum SettingsPage {
+    Appearance,
+    Devices,
+}
 
+/// REQ-31h, REQ-47, REQ-48, and Devices (Android SRS REQ-22e).
+pub fn settings(app: &Rc<App>) {
+    settings_on(app, SettingsPage::Appearance);
+}
+
+pub fn settings_on(app: &Rc<App>, opening: SettingsPage) {
+    let dialog = adw::Dialog::builder().content_width(760).content_height(540).title("Settings").build();
+
+    let appearance = vbox(10);
+    appearance.set_margin_start(24);
+    appearance.set_margin_end(24);
+    appearance.set_margin_bottom(24);
+    appearance.set_margin_top(4);
     let preferences = app.preferences.get();
     let app_clone = app.clone();
-    body.append(&segmented("Appearance", &[("System", Appearance::System), ("Light", Appearance::Light), ("Dark", Appearance::Dark)], preferences.appearance, move |choice| {
+    appearance.append(&segmented("Appearance", &[("System", Appearance::System), ("Light", Appearance::Light), ("Dark", Appearance::Dark)], preferences.appearance, move |choice| {
         crate::window::set_appearance(&app_clone, choice);
     }));
     let app_clone = app.clone();
-    body.append(&segmented("Show books as", &[("Pictures", BooksView::Pictures), ("List", BooksView::List)], preferences.books_view, move |choice| {
+    appearance.append(&segmented("Show books as", &[("Pictures", BooksView::Pictures), ("List", BooksView::List)], preferences.books_view, move |choice| {
         crate::window::set_books_view(&app_clone, choice);
     }));
 
+    let stack = gtk::Stack::builder().hexpand(true).transition_type(gtk::StackTransitionType::None).build();
+    stack.add_named(&appearance, Some("appearance"));
+    stack.add_named(&crate::devices::page(app), Some("devices"));
+
+    let sidebar = gtk::ListBox::builder().css_classes(["navigation-sidebar"]).width_request(180).build();
+    for (name, title) in [("appearance", "Appearance"), ("devices", "Devices")] {
+        let row = gtk::ListBoxRow::builder().child(&label(title, &["body"])).name(name).build();
+        sidebar.append(&row);
+    }
+    let stack_clone = stack.clone();
+    sidebar.connect_row_selected(move |_, row| {
+        if let Some(row) = row {
+            stack_clone.set_visible_child_name(&row.widget_name());
+        }
+    });
+    let first = if opening == SettingsPage::Devices { 1 } else { 0 };
+    sidebar.select_row(sidebar.row_at_index(first).as_ref());
+
+    let panes = hbox(0);
+    panes.append(&sidebar);
+    panes.append(&gtk::Separator::new(gtk::Orientation::Vertical));
+    panes.append(&stack);
+
     let toolbar = adw::ToolbarView::new();
     toolbar.add_top_bar(&adw::HeaderBar::new());
-    toolbar.set_content(Some(&body));
+    toolbar.set_content(Some(&panes));
     dialog.set_child(Some(&toolbar));
     dialog.present(Some(&app.window()));
 }
@@ -175,7 +210,7 @@ pub fn about(app: &Rc<App>) {
     let version = label(&format!("Version {}", crate::VERSION), &["caption-2"]);
     version.set_xalign(0.5);
     body.append(&version);
-    let description = label("A private, offline reading tracker. Your library stays in files on this device.", &["body", "ink-2"]);
+    let description = label("A private reading tracker. Your library stays on your own devices.", &["body", "ink-2"]);
     description.set_xalign(0.5);
     description.set_wrap(true);
     description.set_justify(gtk::Justification::Center);

@@ -1,13 +1,15 @@
-//! Booklub for Ubuntu: a private, offline reading tracker.
+//! Booklub for Ubuntu: a private reading tracker.
 
 mod app;
 mod canvas;
 mod category_background;
+mod devices;
 mod dialogs;
 mod image_source;
 mod import_dialog;
 mod inspector;
 mod progress;
+mod sync;
 mod thumbs;
 mod tiles;
 mod util;

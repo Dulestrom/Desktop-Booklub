@@ -3,6 +3,8 @@
 :root {
   --color-page: #f7f3ec;
   --color-card: #fffdf8;
+  /* A QR code needs dark on light in either theme, so this has no dark value. */
+  --color-qr-paper: #ffffff;
   --color-raised: #efe9de;
   --color-track: #e0d8ca;
   --color-line-subtle: #e9e2d6;
@@ -341,3 +343,10 @@ banner { background: var(--color-danger); color: var(--color-on-danger); }
 .about-table { border: 1px solid var(--color-line); border-radius: 8px; }
 .about-row { padding: 8px 10px; }
 .about-row + .about-row { border-top: 1px solid var(--color-line-subtle); }
+
+/* ---------- Settings, Devices ---------- */
+.pairing-card { background: var(--color-raised); border-radius: 12px; padding: 16px; }
+.pairing-qr { background: var(--color-qr-paper); border-radius: 8px; }
+.pairing-code { font-family: monospace; font-size: 17px; font-weight: 600; letter-spacing: 1px; }
+.device-row { padding: 10px 0; }
+.device-row + .device-row { border-top: 1px solid var(--color-line-subtle); }

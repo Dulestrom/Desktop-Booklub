@@ -154,6 +154,10 @@ pub struct Book {
     pub language: String,
     /// BR-10: the file name of the private copy under the backgrounds directory.
     pub background_file: Option<String>,
+    /// The synced position in manual order (Android SRS REQ-32f). `order` is this key's rank,
+    /// so a move changes one book's key and no other book's.
+    #[serde(default)]
+    pub sort_key: String,
 }
 
 impl Book {
@@ -180,6 +184,7 @@ impl Book {
             published_year: None,
             language: String::new(),
             background_file: None,
+            sort_key: crate::sync::new_sort_key(order),
         }
     }
 }

@@ -1,0 +1,23 @@
+[package]
+name = "booklub-sync"
+description = "Pairing and two-way sync between Booklub on a computer and on phones, across the home network only."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+publish = false
+
+[dependencies]
+booklub-core.workspace = true
+if-addrs = "0.15"
+mdns-sd = "0.21"
+rcgen = { version = "0.14", default-features = false, features = ["crypto", "ring"] }
+ring = "0.17"
+rustls = { version = "0.23", default-features = false, features = ["ring", "std", "logging"] }
+serde.workspace = true
+serde_json.workspace = true
+spake2 = "0.4"
+thiserror = "2"
+
+[dev-dependencies]
+tempfile = "3"

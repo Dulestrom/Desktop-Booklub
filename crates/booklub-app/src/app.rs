@@ -46,6 +46,7 @@ pub struct App {
     pub ui: OnceCell<Ui>,
     /// True while the grid is being repopulated, so its signals do not fire back.
     pub updating: Cell<bool>,
+    pub sync: crate::sync::SyncState,
 }
 
 impl App {

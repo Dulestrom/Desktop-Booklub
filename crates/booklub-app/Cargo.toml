@@ -1,6 +1,6 @@
 [package]
 name = "booklub-app"
-description = "A private, offline reading tracker. Your library stays in files on this device."
+description = "A private reading tracker. Your library stays on your own devices."
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -17,9 +17,12 @@ dev-tools = []
 
 [dependencies]
 adw = { package = "libadwaita", version = "0.9", features = ["v1_9"] }
+async-channel = "2"
 booklub-core.workspace = true
+booklub-sync.workspace = true
 chrono.workspace = true
 gtk = { package = "gtk4", version = "0.11", features = ["v4_22"] }
+qrcode = { version = "0.14", default-features = false }
 
 [build-dependencies]
 glib-build-tools = "0.22"

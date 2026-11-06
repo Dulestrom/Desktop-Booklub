@@ -31,11 +31,13 @@ pub struct Preferences {
     pub appearance: Appearance,
     pub books_view: BooksView,
     pub tile_scale: f64,
+    /// Android SRS REQ-22e: sync starts off, and only the Reader turns it on.
+    pub sync_enabled: bool,
 }
 
 impl Default for Preferences {
     fn default() -> Self {
-        Self { appearance: Appearance::default(), books_view: BooksView::default(), tile_scale: 1.0 }
+        Self { appearance: Appearance::default(), books_view: BooksView::default(), tile_scale: 1.0, sync_enabled: false }
     }
 }
 
@@ -72,7 +74,7 @@ mod tests {
     #[test]
     fn choices_survive_a_restart() {
         let path = folder("round-trip").join("preferences.json");
-        let chosen = Preferences { appearance: Appearance::Dark, books_view: BooksView::List, tile_scale: 1.25 };
+        let chosen = Preferences { appearance: Appearance::Dark, books_view: BooksView::List, tile_scale: 1.25, sync_enabled: true };
         chosen.save(&path).unwrap();
         assert_eq!(Preferences::load(&path), chosen);
     }

@@ -562,7 +562,8 @@ mod tests {
         };
         let parsed = parse_import(&export_json(&library)).unwrap();
         assert_eq!(parsed.schema_version, 3);
-        assert_eq!(parsed.library.books[0], book);
+        // The sync key is device bookkeeping, not part of an export; a restore assigns new ones.
+        assert_eq!(Book { sort_key: book.sort_key.clone(), ..parsed.library.books[0].clone() }, book);
         assert_eq!(parsed.library.categories, library.categories);
         assert_eq!(parsed.library.goals, library.goals);
         assert_eq!(parsed.corrections, Corrections::default());

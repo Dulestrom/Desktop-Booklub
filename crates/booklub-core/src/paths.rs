@@ -13,6 +13,11 @@ pub struct Paths {
     pub thumbnails: PathBuf,
     pub backups: PathBuf,
     pub preferences: PathBuf,
+    /// This device's sync key and certificate, which never leave it.
+    pub device: PathBuf,
+    /// One thumbnail per background, sent to phones unchanged for the image's life (Android
+    /// SRS REQ-33e). Not in the cache, which may be cleared.
+    pub sync_thumbnails: PathBuf,
 }
 
 impl Paths {
@@ -29,6 +34,8 @@ impl Paths {
             thumbnails: cache.join("thumbnails"),
             backups: data.join("backups"),
             preferences: data.join("preferences.json"),
+            device: data.join("device"),
+            sync_thumbnails: data.join("sync-thumbnails"),
         }
     }
 

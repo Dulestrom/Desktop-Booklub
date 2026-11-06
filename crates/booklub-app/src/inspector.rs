@@ -824,6 +824,20 @@ impl Inspector {
         self.app.ui().show_inspector(true);
     }
 
+    /// After a sync: a book being edited that another device deleted closes, because that
+    /// deletion wins (Android SRS D-17). Edits in progress to a book that still exists stay.
+    pub fn after_sync(&self) {
+        self.refresh_preview();
+        if self.has_book.get() && !self.is_new.get() {
+            let id = self.original.borrow().id.clone();
+            if self.app.book(&id).is_none() {
+                let title = self.original.borrow().title.clone();
+                self.close();
+                self.app.ui().show_banner(&format!("\"{title}\" was deleted on another device."));
+            }
+        }
+    }
+
     /// Keeps the preview in step with the library, and closes it when its book has gone.
     pub fn refresh_preview(&self) {
         let Some(id) = self.previewing.borrow().clone() else { return };
@@ -1200,6 +1214,14 @@ impl Inspector {
             }
         }
 
+        // A phone may have changed this book since the editor opened. Only the fields changed
+        // here are written, so its changes to the others stay (Android SRS REQ-32b).
+        if !self.is_new.get() {
+            if let Some(current) = self.app.book(&book.id) {
+                book = booklub_core::sync::rebase(&self.original.borrow(), &book, &current);
+            }
+        }
+
         if !self.app.save_book(&book) {
             // The new copy was never referenced, so it should not linger until the next sweep.
             if let (PendingBackground::Set(_), Some(file)) = (&pending, &book.background_file) {
@@ -1217,8 +1239,13 @@ impl Inspector {
         }
 
         *self.pending.borrow_mut() = PendingBackground::Unchanged;
+        let rebased = *self.draft.borrow() != book;
         *self.original.borrow_mut() = book.clone();
         *self.draft.borrow_mut() = book.clone();
+        if rebased {
+            // Shows what was merged in, so the form doesn't look unsaved.
+            self.fill(&book);
+        }
         self.is_new.set(false);
         self.heading.set_label("Book");
         self.delete_box.set_visible(true);

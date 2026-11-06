@@ -2,7 +2,7 @@
 
 A private reading tracker for the Linux desktop, built in Rust with GTK4 and libadwaita. Books are vertical tiles, categories are horizontal ones, and your library stays in files on your own computer.
 
-There's no account, no server, and no network access.
+There's no account, no server, and no cloud. If you turn on sync, your library goes only to your own phones running [Booklub for Android](https://github.com/Dulestrom/Android-Booklub), across your home network.
 
 ![Home, with category tiles and books in progress](docs/screenshots/home.png)
 
@@ -75,6 +75,15 @@ There's no account, no server, and no network access.
 - Restore a backup by replacing your library or merging into it
 - A backup is made automatically before an upgrade changes the database
 
+### Sync with your phones
+
+- Pair a phone running [Booklub for Android](https://github.com/Dulestrom/Android-Booklub) by scanning a QR code, or by typing an address and an 8-character code
+- Changes on either side reach the other within seconds while Booklub is open on both, and a change on one phone reaches another through the computer
+- Each field merges on its own, so a page count updated on the phone and a title fixed on the computer both survive, and a deletion wins over an edit
+- Pairs with as many phones as you like, each listed with its last sync, and any of them can be removed
+- Off until you turn it on in Settings, then Devices. Traffic stays on your home network, encrypted with TLS 1.3, and only paired devices are let in
+- Images travel as thumbnails, so a phone doesn't fill up with full-size pictures
+
 ### Accessibility
 
 - Every action works from the keyboard, with a visible focus ring
@@ -128,7 +137,9 @@ To try Booklub without installing it, install the packages listed in [BUILDING.m
 | Library | `~/.local/share/booklub/library.sqlite3` |
 | Background images | `~/.local/share/booklub/backgrounds/` |
 | Backups made before upgrades | `~/.local/share/booklub/backups/` |
-| Display settings | `~/.local/share/booklub/preferences.json` |
+| Display and sync settings | `~/.local/share/booklub/preferences.json` |
+| This computer's sync key, which never leaves it | `~/.local/share/booklub/device/` |
+| Thumbnails sent to phones | `~/.local/share/booklub/sync-thumbnails/` |
 | Thumbnails, rebuilt when missing | `~/.cache/booklub/thumbnails/` |
 
 Uninstalling the app leaves these folders in place. To keep one portable copy of your library, use **Import and Export** in the main menu.
@@ -137,7 +148,8 @@ Uninstalling the app leaves these folders in place. To keep one portable copy of
 
 ```
 assets/                  logo, app icon, interface icons, illustrations, category artwork
-crates/booklub-core/     every domain rule and all storage, with no GTK dependency
+crates/booklub-core/     every domain rule and all storage, including how sync merges, with no GTK dependency
+crates/booklub-sync/     pairing, TLS, and sessions with phones, shared with the Android app
 crates/booklub-app/      the GTK interface
   resources/style.css    the only file holding colour values
   data/                  desktop entry, AppStream metadata, file type

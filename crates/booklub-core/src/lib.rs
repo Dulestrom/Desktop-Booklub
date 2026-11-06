@@ -16,6 +16,10 @@ pub mod query;
 pub mod rules;
 pub mod spreadsheet;
 pub mod stats;
+pub mod sync;
 pub mod store;
 
 pub use model::{Book, Category, CategoryBackground, Goal, GoalId, Library, Priority, Status, SubCategory};
+
+#[cfg(test)]
+mod sync_tests;

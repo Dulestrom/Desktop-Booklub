@@ -1,10 +1,10 @@
 [workspace]
 resolver = "2"
-members = ["crates/booklub-core", "crates/booklub-app"]
+members = ["crates/booklub-core", "crates/booklub-sync", "crates/booklub-app"]
 exclude = ["spikes"]
 
 [workspace.package]
-version = "1.3.0"
+version = "1.4.0"
 edition = "2021"
 rust-version = "1.93"
 license = "ISC"
@@ -12,6 +12,7 @@ repository = "https://github.com/Dulestrom/Desktop-Booklub"
 
 [workspace.dependencies]
 booklub-core = { path = "crates/booklub-core" }
+booklub-sync = { path = "crates/booklub-sync" }
 chrono = { version = "0.4", default-features = false, features = ["clock", "std"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"

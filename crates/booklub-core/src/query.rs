@@ -277,9 +277,14 @@ pub fn move_book(books: &mut Vec<Book>, moved_id: &str, target_id: &str) -> Vec<
     ) else {
         return Vec::new();
     };
-    let moved = books.remove(from);
+    let mut moved = books.remove(from);
+    // Between its new neighbours, so no other book's key changes (Android SRS REQ-32f).
+    let before = if to == 0 { String::new() } else { books[to - 1].sort_key.clone() };
+    let after = books.get(to).map(|book| book.sort_key.clone());
+    moved.sort_key = crate::sync::key_between(&before, after.as_deref());
     books.insert(to, moved);
-    renumber(books)
+    renumber(books);
+    vec![books[to].clone()]
 }
 
 /// REQ-01c, REQ-18f: the position following every existing book. Positions normally run
@@ -406,7 +411,9 @@ mod tests {
         let changed = move_book(&mut books, "d", "b");
         assert_eq!(ids(&books), ["a", "d", "b", "c"]);
         assert_eq!(books.iter().map(|b| b.order).collect::<Vec<_>>(), [0, 1, 2, 3]);
-        assert_eq!(changed.len(), 3);
+        // Only the moved book's key changes, and the keys now sort the way the list reads.
+        assert_eq!(ids(&changed), ["d"]);
+        assert!(books.windows(2).all(|pair| pair[0].sort_key < pair[1].sort_key));
     }
 
     #[test]

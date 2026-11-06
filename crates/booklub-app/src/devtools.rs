@@ -154,6 +154,23 @@ fn step(app: &Rc<App>, script: &str) {
         }
         "import" => import_dialog::present(app),
         "settings" => crate::dialogs::settings(app),
+        // "devices", "devices:pairing", or "devices:paired" (two phones, sync on).
+        "devices" => {
+            let mode = parts.next().unwrap_or_default();
+            if mode == "paired" {
+                let yesterday = (chrono::Local::now() - chrono::Duration::days(1)).to_rfc3339();
+                for (id, name, last) in [("p1", "Galaxy S25", Some(chrono::Local::now().to_rfc3339())), ("p2", "Galaxy A54", Some(yesterday))] {
+                    let _ = app.store.save_peer(&booklub_sync::PairedPeer { id: id.into(), name: name.into(), fingerprint: "00".repeat(32), last_session: last, ..Default::default() });
+                }
+            }
+            if !mode.is_empty() {
+                crate::sync::set_enabled(app, true);
+            }
+            if mode == "pairing" {
+                crate::sync::open_pairing(app);
+            }
+            crate::dialogs::settings_on(app, crate::dialogs::SettingsPage::Devices);
+        }
         "about" => crate::dialogs::about(app),
         // Booklub's own sort, in either view: "sorted:priority", "sorted:category:list".
         "sorted" => {
@@ -635,8 +652,289 @@ async fn e2e(app: Rc<App>) {
         println!("SKIP  wizard and restore (no fixtures given)");
     }
 
+    sync_checks(&app, &mut c).await;
+
     println!("RESULT {} passed, {} failed", c.passed, c.failed);
     std::process::exit(i32::from(c.failed > 0));
+}
+
+/// A phone in this process: its own store and image folder, driven through the real sync client
+/// on a worker thread, against this window's own server over loopback (plan step 6).
+struct PhoneSim {
+    name: String,
+    store: std::sync::Mutex<booklub_core::store::Store>,
+    images: std::path::PathBuf,
+    key: booklub_sync::DeviceKey,
+}
+
+impl PhoneSim {
+    fn new(dir: &std::path::Path, name: &str) -> std::sync::Arc<Self> {
+        let _ = std::fs::remove_dir_all(dir);
+        let images = dir.join("backgrounds");
+        std::fs::create_dir_all(&images).unwrap();
+        let store = booklub_core::store::Store::open(&dir.join("library.sqlite3"), &dir.join("backups")).unwrap();
+        std::sync::Arc::new(Self { name: name.into(), store: std::sync::Mutex::new(store), images, key: booklub_sync::DeviceKey::generate() })
+    }
+
+    fn store(&self) -> std::sync::MutexGuard<'_, booklub_core::store::Store> {
+        self.store.lock().unwrap()
+    }
+
+    fn books(&self) -> Vec<Book> {
+        self.store().load_all().unwrap().books
+    }
+
+    fn edit(&self, title: &str, change: impl FnOnce(&mut Book)) -> bool {
+        let Some(mut book) = self.books().into_iter().find(|b| b.title == title) else { return false };
+        change(&mut book);
+        self.store().save_book(&book).is_ok()
+    }
+
+    fn referenced(&self) -> Vec<String> {
+        let library = self.store().load_all().unwrap();
+        let mut names: Vec<String> = library.books.iter().filter_map(|b| b.background_file.clone()).collect();
+        names.extend(library.categories.iter().filter_map(|c| c.background.as_ref()?.file_name().map(String::from)));
+        names
+    }
+
+    /// Runs `work` on a worker thread while the main loop keeps serving the desktop's side.
+    async fn run<T: Send + 'static>(self: &std::sync::Arc<Self>, work: impl FnOnce(&Self) -> T + Send + 'static) -> T {
+        let (done, result) = async_channel::bounded(1);
+        let phone = self.clone();
+        std::thread::spawn(move || {
+            let _ = done.send_blocking(work(&phone));
+        });
+        result.recv().await.expect("the phone thread answers")
+    }
+
+    async fn pair(self: &std::sync::Arc<Self>, port: u16, code: String) -> Result<(), booklub_sync::SyncError> {
+        self.run(move |phone| {
+            let target = booklub_sync::client::Target::Code { address: std::net::SocketAddr::from(([127, 0, 0, 1], port)), code };
+            booklub_sync::client::pair(phone, &phone.key, &target).map(|_| ())
+        })
+        .await
+    }
+
+    async fn sync(self: &std::sync::Arc<Self>, port: u16) -> Result<booklub_sync::Summary, booklub_sync::SyncError> {
+        self.run(move |phone| {
+            let computer = phone.store().peers().unwrap().into_iter().next().ok_or(booklub_sync::SyncError::NotPaired)?;
+            booklub_sync::client::sync(phone, &phone.key, &computer, &[std::net::SocketAddr::from(([127, 0, 0, 1], port))])
+        })
+        .await
+    }
+}
+
+impl booklub_sync::Host for PhoneSim {
+    fn peer_id(&self) -> String {
+        self.store().peer_id().to_string()
+    }
+    fn device_name(&self) -> String {
+        self.name.clone()
+    }
+    fn peers(&self) -> Result<Vec<booklub_sync::PairedPeer>, String> {
+        self.store().peers().map_err(|e| e.message)
+    }
+    fn save_peer(&self, peer: &booklub_sync::PairedPeer) -> Result<(), String> {
+        let store = self.store();
+        // A phone pairs with one computer (BR-07).
+        for old in store.peers().map_err(|e| e.message)? {
+            store.remove_peer(&old.id).map_err(|e| e.message)?;
+        }
+        store.save_peer(peer).map_err(|e| e.message)
+    }
+    fn vector(&self) -> Result<booklub_sync::Vector, String> {
+        self.store().sync_vector().map_err(|e| e.message)
+    }
+    fn delta_since(&self, theirs: &booklub_sync::Vector) -> Result<booklub_sync::Delta, String> {
+        self.store().delta_since(theirs).map_err(|e| e.message)
+    }
+    fn apply(&self, delta: &booklub_sync::Delta) -> Result<booklub_sync::ApplyReport, String> {
+        self.store().apply_delta(delta).map_err(|e| e.message)
+    }
+    fn reset_for_pairing(&self) -> Result<(), String> {
+        self.store().reset_for_pairing().map_err(|e| e.message)
+    }
+    fn missing_images(&self) -> Vec<String> {
+        self.referenced().into_iter().filter(|name| !self.images.join(name).exists()).collect()
+    }
+    fn read_image(&self, name: &str) -> Option<Vec<u8>> {
+        std::fs::read(self.images.join(name)).ok()
+    }
+    fn store_image(&self, name: &str, bytes: &[u8]) -> Result<(), String> {
+        std::fs::write(self.images.join(name), bytes).map_err(|e| e.to_string())
+    }
+    fn session_finished(&self, _peer: &str, _acked: &booklub_sync::Vector) -> Result<(), String> {
+        Ok(())
+    }
+    fn confirm_pairing(&self, _other_name: &str) -> bool {
+        true
+    }
+}
+
+fn png(width: i32, height: i32, shade: u8) -> Vec<u8> {
+    let pixels = vec![shade; (width * height * 4) as usize];
+    let texture = gdk::MemoryTexture::new(width, height, gdk::MemoryFormat::R8g8b8a8, &glib::Bytes::from_owned(pixels), width as usize * 4);
+    texture.save_to_png_bytes().to_vec()
+}
+
+/// Android SRS REQ-20 to REQ-34 on the desktop: Devices, the server, and its store bridge.
+async fn sync_checks(app: &Rc<App>, c: &mut Checks) {
+    use crate::sync;
+    let ui = app.ui();
+    c.check("sync starts off (REQ-22e)", !app.preferences.get().sync_enabled && !app.sync.is_running());
+    sync::set_enabled(app, true);
+    let Some(port) = app.sync.port() else {
+        c.check("turning sync on starts the server", false);
+        return;
+    };
+    c.check("turning sync on starts the server and remembers it", app.sync.is_running() && app.preferences.get().sync_enabled);
+    app.sync.auto_confirm.set(Some(true));
+
+    let dir = std::env::temp_dir().join(format!("booklub-e2e-phones-{}", std::process::id()));
+    let phone = PhoneSim::new(&dir.join("a54"), "Galaxy A54");
+    let own = Book { title: "Only on the phone".into(), ..Book::new(0) };
+    phone.store().save_book(&own).unwrap();
+
+    // Gives one desktop book a background, so the first session carries a sync thumbnail.
+    let mut covered = app.library.borrow().books.first().cloned().expect("the restore left books");
+    let checked = booklub_core::background::check(png(600, 900, 120)).unwrap();
+    covered.background_file = Some(booklub_core::background::store(&checked, &app.paths.backgrounds, &app.paths.thumbnails).unwrap());
+    app.save_book(&covered);
+
+    let offer = sync::open_pairing(app).expect("pairing opens while sync is on");
+    c.check("the code reads like K7Q4 9XMP (REQ-20f)", offer.code.len() == 9 && offer.code.as_bytes()[4] == b' ');
+    c.check("the QR code carries the port in use (REQ-20a)", offer.uri.contains(&format!("&p={port}&")));
+    let paired = phone.pair(port, offer.code.clone()).await;
+    c.check("a phone pairs with the typed code (REQ-20f)", paired.is_ok());
+    pause(100).await;
+    let desktop_titles = |app: &App| {
+        let mut titles: Vec<String> = app.library.borrow().books.iter().map(|b| b.title.clone()).collect();
+        titles.sort();
+        titles
+    };
+    let phone_titles = |phone: &PhoneSim| {
+        let mut titles: Vec<String> = phone.books().into_iter().map(|b| b.title).collect();
+        titles.sort();
+        titles
+    };
+    c.check("the phone receives the whole library (REQ-31)", phone_titles(&phone) == desktop_titles(app));
+    c.check("the phone's own starter book is replaced (UR-02)", phone.books().iter().all(|b| b.title != "Only on the phone"));
+    let cover = covered.background_file.clone().unwrap();
+    let thumbnail = std::fs::read(phone.images.join(&cover)).unwrap_or_default();
+    c.check("the phone receives the cover as a 296 x 444 thumbnail (BR-08)", booklub_core::background::decode(&thumbnail).is_ok_and(|image| (image.width(), image.height()) == (296, 444)));
+    c.check("the computer keeps that thumbnail for the image's life (REQ-33e)", booklub_core::background::thumbnail_path(&app.paths.sync_thumbnails, &cover).exists());
+    c.check("the computer lists the phone (REQ-20e)", app.store.peers().unwrap().iter().any(|p| p.name == "Galaxy A54" && p.fingerprint == phone.key.fingerprint));
+    c.check("pairing closes once used (REQ-20c)", !app.sync.pairing_open());
+
+    crate::dialogs::settings_on(app, crate::dialogs::SettingsPage::Devices);
+    pause(150).await;
+    let texts = dialog_texts(app);
+    c.check("Devices lists the phone and its last sync (REQ-34)", texts.iter().any(|t| t == "Galaxy A54") && texts.iter().any(|t| t.starts_with("Last synced just now")));
+    close_dialogs(app);
+
+    // Phone to computer, and the screen follows.
+    let first = covered.title.clone();
+    c.check("an edit on the phone is stored there", phone.edit(&first, |b| b.title = "Renamed on the phone".into()));
+    c.check("the phone's session succeeds", phone.sync(port).await.is_ok());
+    pause(100).await;
+    navigate(app, View::AllBooks);
+    pause(100).await;
+    c.check("the phone's edit reaches the computer (REQ-30b)", app.library.borrow().books.iter().any(|b| b.title == "Renamed on the phone"));
+    c.check("and its grid", crate::window::dev_grid_titles(app).iter().any(|t| t == "Renamed on the phone"));
+
+    // Computer to phone.
+    let mut second = app.library.borrow().books.iter().find(|b| b.title != "Renamed on the phone").cloned().unwrap();
+    second.notes = "From the computer".into();
+    app.save_book(&second);
+    let _ = phone.sync(port).await;
+    c.check("the computer's edit reaches the phone", phone.books().iter().any(|b| b.id == second.id && b.notes == "From the computer"));
+
+    // REQ-32b on the desktop: an editor opened before a sync keeps the phone's other changes.
+    let inspector = ui.inspector.clone();
+    inspector.open(app.book(&second.id).unwrap(), false);
+    inspector.dev_set(Some("Edited on the computer"), None, None, None);
+    phone.edit(&second.title, |b| {
+        b.total_pages = Some(320);
+        b.current_page = 77;
+    });
+    let _ = phone.sync(port).await;
+    pause(50).await;
+    c.check("a sync leaves an open editor alone", ui.inspector_visible() && inspector.dev_title() == "Edited on the computer");
+    inspector.clone().save_for_devtools().await;
+    let merged = app.book(&second.id).unwrap();
+    c.check("saving it keeps the phone's page (REQ-32b)", merged.title == "Edited on the computer" && merged.current_page == 77 && merged.total_pages == Some(320));
+    let _ = phone.sync(port).await;
+    c.check("and the phone gets the title", phone.books().iter().any(|b| b.id == second.id && b.title == "Edited on the computer" && b.current_page == 77));
+
+    // D-17: the phone deletes the book the editor has open.
+    inspector.open(app.book(&second.id).unwrap(), false);
+    inspector.dev_set(None, None, None, Some("80"));
+    let doomed = phone.books().into_iter().find(|b| b.id == second.id).unwrap();
+    phone.store().delete_book(&doomed).unwrap();
+    let _ = phone.sync(port).await;
+    pause(50).await;
+    c.check("a deletion on the phone removes the book (D-17)", app.book(&second.id).is_none());
+    c.check("the open editor closes and says why", !ui.inspector_visible());
+    c.check("the grid no longer shows it", !crate::window::dev_grid_titles(app).iter().any(|t| t == "Edited on the computer"));
+
+    // A book added on the phone, with its thumbnail (REQ-33f).
+    let photo = "phone-cover.jpg".to_string();
+    std::fs::write(phone.images.join(&photo), png(296, 444, 200)).unwrap();
+    let added = Book { title: "Added on the phone".into(), background_file: Some(photo.clone()), ..Book::new(99) };
+    phone.store().save_book(&added).unwrap();
+    let _ = phone.sync(port).await;
+    pause(100).await;
+    c.check("a phone's book arrives", app.book(&added.id).is_some());
+    c.check("with its image, stored as the background (REQ-33f)", app.paths.backgrounds.join(&photo).exists() && sync::dev_referenced(app).contains(&photo));
+
+    // A second phone gets everything, including the first phone's image, through the computer.
+    let other = PhoneSim::new(&dir.join("s25"), "Galaxy S25");
+    let offer = sync::open_pairing(app).unwrap();
+    let _ = other.pair(port, offer.code).await;
+    c.check("a second phone pairs without removing the first (REQ-20h)", app.store.peers().unwrap().len() == 2);
+    c.check("it receives the first phone's book and image (REQ-20j)", other.books().iter().any(|b| b.id == added.id) && other.images.join(&photo).exists());
+
+    // REQ-21b: a removed phone is refused.
+    let a54 = app.store.peers().unwrap().into_iter().find(|p| p.name == "Galaxy A54").unwrap();
+    sync::remove_phone(app, &a54.id);
+    c.check("a removed phone is refused (REQ-21b)", matches!(phone.sync(port).await, Err(booklub_sync::SyncError::NotPaired)));
+
+    // A wrong code, through the server the window runs.
+    let offer = sync::open_pairing(app).unwrap();
+    let wrong = if offer.code.starts_with('0') { offer.code.replacen('0', "1", 1) } else { format!("0{}", &offer.code[1..]) };
+    let stranger = PhoneSim::new(&dir.join("stranger"), "Stranger");
+    c.check("a wrong code is refused with the tries left (REQ-20g)", matches!(stranger.pair(port, wrong).await, Err(booklub_sync::SyncError::WrongCode { remaining: 4 })));
+    sync::close_pairing(app);
+
+    sync::set_enabled(app, false);
+    pause(150).await;
+    c.check("turning sync off stops the server", !app.sync.is_running() && !app.preferences.get().sync_enabled);
+    c.check("then nothing answers on its port", matches!(other.sync(port).await, Err(booklub_sync::SyncError::Unreachable)));
+    let _ = std::fs::remove_dir_all(&dir);
+}
+
+fn dialog_texts(app: &App) -> Vec<String> {
+    fn collect(widget: &gtk::Widget, out: &mut Vec<String>) {
+        if let Some(found) = widget.downcast_ref::<gtk::Label>() {
+            out.push(found.label().to_string());
+        }
+        let mut child = widget.first_child();
+        while let Some(current) = child {
+            collect(&current, out);
+            child = current.next_sibling();
+        }
+    }
+    let mut out = Vec::new();
+    if let Some(dialog) = app.ui().window.visible_dialog() {
+        collect(dialog.upcast_ref(), &mut out);
+    }
+    out
+}
+
+fn close_dialogs(app: &App) {
+    while let Some(dialog) = app.ui().window.visible_dialog() {
+        dialog.force_close();
+    }
 }
 
 /// REQ-50 to REQ-51b: a click previews, and only the context menu's Edit opens the editor.

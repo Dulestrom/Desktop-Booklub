@@ -1,7 +1,7 @@
 [Desktop Entry]
 Type=Application
 Name=Booklub
-Comment=A private, offline reading tracker
+Comment=A private reading tracker
 Exec=booklub
 Icon=io.github.dulestrom.Booklub
 Terminal=false
